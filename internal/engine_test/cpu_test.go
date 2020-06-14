@@ -30,8 +30,8 @@ func TestRegisters_SetMultiRegister(t *testing.T) {
 		for _, j := range values {
 			cpu.WriteRegister(r.multiRegister, j)
 
-			jl := uint8((j & 0xFF00) >> 8)
-			jh := uint8(j & 0xFF)
+			jh := uint8((j & 0xFF00) >> 8)
+			jl := uint8(j & 0xFF)
 
 			assert.Equal(t, jl, *r.a)
 			assert.Equal(t, jh, *r.b)
@@ -58,7 +58,7 @@ func TestRegisters_GetMultiRegister(t *testing.T) {
 			*r.a = jl
 			*r.b = jh
 
-			expected := (uint(jl) << 8) | uint(jh)
+			expected := (uint(jh) << 8) | uint(jl)
 
 			value := cpu.ReadRegister(r.multiRegister)
 

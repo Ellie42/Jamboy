@@ -41,7 +41,7 @@ func TestLDd16(t *testing.T) {
 		assert.True(t, finished)
 		assert.Nil(t, err)
 
-		expected := binary.BigEndian.Uint16(cart.Data)
+		expected := binary.LittleEndian.Uint16(cart.Data)
 
 		assert.Equal(t, expected, uint16(jb.CPU.ReadRegister(test.r)), "register value does not match expected")
 	}
