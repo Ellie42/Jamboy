@@ -2,7 +2,6 @@ package engine
 
 import (
     "fmt"
-    "git.agehadev.com/elliebelly/jamboy/internal"
 )
 
 func ADC(jb *Jamboy, opcode OpCode) (finished bool, err error) {
@@ -69,8 +68,64 @@ func JR(jb *Jamboy, opcode OpCode) (finished bool, err error) {
     panic(fmt.Sprintf("not implemented op JR -  %x", opcode))
 }
 
-var ldOrderedRegisters = []Register{
-    B, C, D, E, H, L, Register(255), A,
+func LDRAMToA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+    data := byte(0)
+
+    switch opcode & 0xF0 {
+    case 0x00:
+        data = jb.Memory.RAM[jb.CPU.ReadRegister(BC)]
+    case 0x10:
+        data = jb.Memory.RAM[jb.CPU.ReadRegister(DE)]
+    case 0x20:
+        data = jb.Memory.RAM[jb.CPU.ReadRegister(HL)]
+        jb.CPU.IncrementHL()
+    case 0x30:
+        data = jb.Memory.RAM[jb.CPU.ReadRegister(HL)]
+        jb.CPU.DecrementHL()
+    }
+
+    jb.CPU.WriteRegister(A, uint(data))
+
+    return true, err
+}
+
+func LDAToRAM(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+    data := jb.CPU.Registers[A]
+
+    switch opcode & 0xF0 {
+    case 0x00:
+        register := jb.CPU.ReadRegister(BC)
+        jb.CPU.Wait(1)
+        jb.Memory.Write(uint16(register), data)
+    case 0x10:
+        register := jb.CPU.ReadRegister(DE)
+        jb.CPU.Wait(1)
+        jb.Memory.Write(uint16(register), data)
+    case 0x20:
+        register := jb.CPU.ReadRegister(HL)
+        jb.CPU.Wait(1)
+        jb.Memory.Write(uint16(register), data)
+        jb.CPU.IncrementHL()
+    case 0x30:
+        register := jb.CPU.ReadRegister(HL)
+        jb.CPU.Wait(1)
+        jb.Memory.Write(uint16(register), data)
+        jb.CPU.DecrementHL()
+    }
+
+    return true, err
+}
+
+var ld8OrderedRegisters = []Register{
+    C, E, L, A,
+}
+
+func LDd8(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+    dstRegister := ld8OrderedRegisters[opcode&0xF0>>4]
+
+    jb.CPU.WriteRegister(dstRegister, uint(jb.Read8Bit()))
+
+    return true, err
 }
 
 func LDd16(jb *Jamboy, opcode OpCode) (finished bool, err error) {
@@ -94,8 +149,12 @@ func LDd16(jb *Jamboy, opcode OpCode) (finished bool, err error) {
     return true, err
 }
 
+var ldOrderedRegisters = []Register{
+    B, C, D, E, H, L, Register(255), A,
+}
+
 func LD(jb *Jamboy, opcode OpCode) (finished bool, err error) {
-    // 8 bit LDs r = r
+    // 8 bit LDs
     if opcode >= 0x40 && opcode < 0x80 {
         opOffset := opcode - 0x40
         opSeq := opOffset % 8
@@ -105,12 +164,15 @@ func LD(jb *Jamboy, opcode OpCode) (finished bool, err error) {
         if dstRegister == 255 {
             // (HL) = r
             jb.Memory.RAM[jb.CPU.ReadRegister(HL)] = jb.CPU.Registers[srcRegister]
-        }else if opSeq == 6 {
+        } else if opSeq == 6 {
             // r = (HL)
             jb.CPU.Registers[dstRegister] = jb.Memory.RAM[jb.CPU.ReadRegister(HL)]
         } else {
+            //r = r
             jb.CPU.WriteRegister(dstRegister, uint(jb.CPU.Registers[srcRegister]))
         }
+    } else {
+        panic(fmt.Sprintf("not implemented LD %x", opcode))
     }
 
     return true, err
@@ -121,8 +183,6 @@ func LDH(jb *Jamboy, opcode OpCode) (finished bool, err error) {
 }
 
 func NOP(jb *Jamboy, opcode OpCode) (finished bool, err error) {
-    internal.Logger.Info("exec NOP")
-
     return true, nil
 }
 

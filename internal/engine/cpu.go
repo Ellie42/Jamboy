@@ -48,7 +48,10 @@ type Registers struct {
 
 func (c *CPU) WriteRegister(register Register, value uint) {
 	c.Wait(1)
+	c.WriteRegisterInstant(register, value)
+}
 
+func (c *CPU) WriteRegisterInstant(register Register, value uint) {
 	switch register {
 	case AF:
 		c.Registers[A] = uint8(value & 0x00FF)
@@ -85,9 +88,13 @@ func (c *CPU) WriteRegister(register Register, value uint) {
 	}
 }
 
-func (c *CPU) ReadRegister(register Register) (value uint) {
+func (c *CPU) ReadRegister(register Register) uint {
 	c.Wait(1)
 
+	return c.ReadRegisterInstant(register)
+}
+
+func (c *CPU) ReadRegisterInstant(register Register) (value uint) {
 	switch register {
 	case AF:
 		value = uint(c.Registers[A])
@@ -143,6 +150,14 @@ func (c *CPU) Reset() {
 
 func (c CPU) Wait(i int) {
 
+}
+
+func (c *CPU) IncrementHL() {
+	c.WriteRegisterInstant(HL, c.ReadRegisterInstant(HL)+1)
+}
+
+func (c *CPU) DecrementHL() {
+	c.WriteRegisterInstant(HL, c.ReadRegisterInstant(HL)-1)
 }
 
 func NewCPU(memory *Memory) *CPU {
