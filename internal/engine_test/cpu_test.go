@@ -2,6 +2,7 @@ package engine_test
 
 import (
 	"git.agehadev.com/elliebelly/jamboy/internal/engine"
+	"github.com/stretchr/testify/assert"
 	"os"
 	"testing"
 )
@@ -9,7 +10,7 @@ import (
 var cpu *engine.CPU
 
 func TestMain(m *testing.M) {
-	cpu = &engine.CPU{}
+	cpu = engine.NewCPU(&engine.Memory{})
 
 	os.Exit(m.Run())
 }
@@ -17,7 +18,7 @@ func TestMain(m *testing.M) {
 func TestRegisters_SetMultiRegister(t *testing.T) {
 	registers := GetTestRegisters()
 
-	values := []uint16{
+	values := []uint{
 		0x0000,
 		0xFFFF,
 		0xFF00,
@@ -27,17 +28,13 @@ func TestRegisters_SetMultiRegister(t *testing.T) {
 
 	for _, r := range registers {
 		for _, j := range values {
-			cpu.SetMultiRegister(r.multiRegister, j)
+			cpu.WriteRegister(r.multiRegister, j)
 
 			jl := uint8((j & 0xFF00) >> 8)
 			jh := uint8(j & 0xFF)
 
-			if *r.a != jl || *r.b != jh {
-				t.Errorf(
-					"Invalid register values for %s: %d, %d\nExpected: %d, %d",
-					r.multiRegister.String(), *r.a, *r.b, jl, jh,
-				)
-			}
+			assert.Equal(t, jl, *r.a)
+			assert.Equal(t, jh, *r.b)
 		}
 	}
 }
@@ -61,34 +58,29 @@ func TestRegisters_GetMultiRegister(t *testing.T) {
 			*r.a = jl
 			*r.b = jh
 
-			expected := (uint16(jl) << 8) | uint16(jh)
+			expected := (uint(jl) << 8) | uint(jh)
 
-			value := cpu.GetMultiRegister(r.multiRegister)
+			value := cpu.ReadRegister(r.multiRegister)
 
-			if value != expected {
-				t.Errorf(
-					"Returned value not correct for %s: %x\nExpected: %x",
-					r.multiRegister.String(), value, expected,
-				)
-			}
+			assert.Equal(t, value, expected)
 		}
 	}
 }
 
 func GetTestRegisters() []struct {
-	multiRegister engine.MultiRegister
+	multiRegister engine.Register
 	a             *uint8
 	b             *uint8
 } {
 	registers := []struct {
-		multiRegister engine.MultiRegister
+		multiRegister engine.Register
 		a             *uint8
 		b             *uint8
 	}{
-		{multiRegister: engine.AF, a: &cpu.A, b: &cpu.F},
-		{multiRegister: engine.BC, a: &cpu.B, b: &cpu.C},
-		{multiRegister: engine.DE, a: &cpu.D, b: &cpu.E},
-		{multiRegister: engine.HL, a: &cpu.H, b: &cpu.L},
+		{multiRegister: engine.AF, a: &cpu.Registers[engine.A], b: &cpu.Registers[engine.F]},
+		{multiRegister: engine.BC, a: &cpu.Registers[engine.B], b: &cpu.Registers[engine.C]},
+		{multiRegister: engine.DE, a: &cpu.Registers[engine.D], b: &cpu.Registers[engine.E]},
+		{multiRegister: engine.HL, a: &cpu.Registers[engine.H], b: &cpu.Registers[engine.L]},
 	}
 
 	return registers

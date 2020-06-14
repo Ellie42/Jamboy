@@ -5,17 +5,31 @@ type CPU struct {
 	PC uint16
 	SP uint16
 
-	Registers
+	Registers []uint8
+
+	memory           *Memory
+	CurrentJumpTable *[]func(jb *Jamboy, opcode OpCode) (finished bool, err error)
+	CurrentOP        OpCode
 }
 
-//go:generate stringer -type=MultiRegister -linecomment
-type MultiRegister int
+//go:generate stringer -type=Register -linecomment
+type Register int
 
 const (
-	AF MultiRegister = iota // AF
-	BC                      // BC
-	DE                      // DE
-	HL                      // HL
+	A  Register = iota // A
+	B                  // B
+	C                  // C
+	D                  // D
+	E                  // E
+	F                  // F
+	H                  // H
+	L                  // L
+	AF                 // AF
+	BC                 // BC
+	DE                 // DE
+	HL                 // HL
+	SP                 // SP
+	PC                 // PC
 )
 
 type Registers struct {
@@ -32,33 +46,81 @@ type Registers struct {
 	L uint8
 }
 
-func (r *Registers) SetMultiRegister(multi MultiRegister, value uint16) {
-	switch multi {
+func (c *CPU) WriteRegister(register Register, value uint) {
+	c.Wait(1)
+
+	switch register {
 	case AF:
-		r.A = uint8((value & 0xFF00) >> 8)
-		r.F = uint8(value & 0x00FF)
+		c.Registers[A] = uint8(value & 0x00FF)
+		c.Registers[F] = uint8((value & 0xFF00) >> 8)
 	case BC:
-		r.B = uint8((value & 0xFF00) >> 8)
-		r.C = uint8(value & 0x00FF)
+		c.Registers[B] = uint8(value & 0x00FF)
+		c.Registers[C] = uint8((value & 0xFF00) >> 8)
 	case DE:
-		r.D = uint8((value & 0xFF00) >> 8)
-		r.E = uint8(value & 0x00FF)
+		c.Registers[D] = uint8(value & 0x00FF)
+		c.Registers[E] = uint8((value & 0xFF00) >> 8)
 	case HL:
-		r.H = uint8((value & 0xFF00) >> 8)
-		r.L = uint8(value & 0x00FF)
+		c.Registers[H] = uint8(value & 0x00FF)
+		c.Registers[L] = uint8((value & 0xFF00) >> 8)
+	case A:
+		fallthrough
+	case B:
+		fallthrough
+	case C:
+		fallthrough
+	case D:
+		fallthrough
+	case E:
+		fallthrough
+	case F:
+		fallthrough
+	case H:
+		fallthrough
+	case L:
+		c.Registers[register] = uint8(value)
+	case SP:
+		c.SP = uint16(value)
+	case PC:
+		c.PC = uint16(value)
 	}
 }
 
-func (r Registers) GetMultiRegister(multi MultiRegister) (value uint16) {
-	switch multi {
+func (c *CPU) ReadRegister(register Register) (value uint) {
+	c.Wait(1)
+
+	switch register {
 	case AF:
-		value = (uint16(r.A) << 8) | uint16(r.F)
+		value = uint(c.Registers[A])
+		value |= (uint(c.Registers[F]) << 8)
 	case BC:
-		value = (uint16(r.B) << 8) | uint16(r.C)
+		value = uint(c.Registers[B])
+		value |= (uint(c.Registers[C]) << 8)
 	case DE:
-		value = (uint16(r.D) << 8) | uint16(r.E)
+		value = uint(c.Registers[D])
+		value |= (uint(c.Registers[E]) << 8)
 	case HL:
-		value = (uint16(r.H) << 8) | uint16(r.L)
+		value = uint(c.Registers[H])
+		value |= (uint(c.Registers[L]) << 8)
+	case A:
+		fallthrough
+	case B:
+		fallthrough
+	case C:
+		fallthrough
+	case D:
+		fallthrough
+	case E:
+		fallthrough
+	case F:
+		fallthrough
+	case H:
+		fallthrough
+	case L:
+		value = uint(c.Registers[register])
+	case SP:
+		value = uint(c.SP)
+	case PC:
+		value = uint(c.PC)
 	}
 
 	return
@@ -66,4 +128,26 @@ func (r Registers) GetMultiRegister(multi MultiRegister) (value uint16) {
 
 func (CPU) ExecuteOp() {
 
+}
+
+func (c *CPU) Reset() {
+	c.CurrentJumpTable = &BaseOpJumpTable
+
+	c.WriteRegister(AF, 0x01B0)
+	c.WriteRegister(BC, 0x0013)
+	c.WriteRegister(DE, 0x00D8)
+	c.WriteRegister(HL, 0x014D)
+	c.SP = 0xFFFE
+	c.PC = 0x0100
+}
+
+func (c CPU) Wait(i int) {
+
+}
+
+func NewCPU(memory *Memory) *CPU {
+	return &CPU{
+		memory:    memory,
+		Registers: make([]uint8, 8),
+	}
 }
