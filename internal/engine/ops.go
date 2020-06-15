@@ -52,8 +52,16 @@ func HALT(jb *Jamboy, opcode OpCode) (finished bool, err error) {
     panic(fmt.Sprintf("not implemented op HALT -  %x", opcode))
 }
 
+var incOrderedRegisters = []Register{
+    C, E, L, A,
+}
+
 func INC(jb *Jamboy, opcode OpCode) (finished bool, err error) {
-    panic(fmt.Sprintf("not implemented op INC -  %x", opcode))
+    dstRegister := incOrderedRegisters[(opcode&0xF0)>>4]
+
+    jb.CPU.WriteRegister(dstRegister, jb.CPU.ReadRegister(dstRegister)+1)
+
+    return true, nil
 }
 
 func JP(jb *Jamboy, opcode OpCode) (finished bool, err error) {

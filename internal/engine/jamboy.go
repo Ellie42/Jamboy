@@ -41,9 +41,17 @@ func (j *Jamboy) Tick() error {
 		return err
 	}
 
-	j.CPU.CurrentOP = j.NextOp()
+	j.CPU.CurrentOP = j.NextOpInstant()
 
 	return nil
+}
+
+func (j *Jamboy) NextOpInstant() (op OpCode) {
+	op = OpCode(j.Cartridge.Data[j.CPU.PC])
+
+	j.CPU.PC += 1
+
+	return
 }
 
 func (j *Jamboy) NextOp() (op OpCode) {
