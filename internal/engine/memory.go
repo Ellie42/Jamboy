@@ -59,3 +59,7 @@ func (m *Memory) Reset() {
 func (m *Memory) Write(pointer uint16, i byte) {
 	m.RAM[pointer] = i
 }
+
+func (m *Memory) Read(hl uint) byte {
+	return m.RAM[hl]
+}

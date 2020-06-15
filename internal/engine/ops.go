@@ -52,20 +52,106 @@ func HALT(jb *Jamboy, opcode OpCode) (finished bool, err error) {
     panic(fmt.Sprintf("not implemented op HALT -  %x", opcode))
 }
 
-var incOrderedRegisters = []Register{
+var incdecAOrderedRegisters = []Register{
+    B, D, H, HL,
+}
+
+var incdecBOrderedRegisters = []Register{
     C, E, L, A,
 }
 
-func INC(jb *Jamboy, opcode OpCode) (finished bool, err error) {
-    dstRegister := incOrderedRegisters[(opcode&0xF0)>>4]
+func INCA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+    dstRegister := incdecAOrderedRegisters[(opcode&0xF0)>>4]
+    IncrementRegister(jb, dstRegister)
 
-    jb.CPU.WriteRegister(dstRegister, jb.CPU.ReadRegister(dstRegister)+1)
+    return true, nil
+}
+
+func IncrementRegister(jb *Jamboy, dstRegister Register) {
+    srcValue := jb.CPU.ReadRegister(dstRegister)
+    finalValue := uint(srcValue)
+
+    jb.CPU.SetFlags(0x0)
+
+    if dstRegister == HL {
+        hl := srcValue
+        srcValue = uint(jb.ReadRAM(hl))
+        finalValue = srcValue + 1
+        jb.WriteRAM(uint16(hl), byte(finalValue))
+    } else {
+        finalValue = srcValue + 1
+        jb.CPU.WriteRegister(dstRegister, srcValue)
+    }
+
+    if finalValue == 0 {
+        jb.CPU.AddFlags(ZeroFlag)
+    }
+
+    if srcValue < 0x10 && finalValue >= 0x10 {
+        jb.CPU.AddFlags(HalfCarryFlag)
+    }
+
+    if finalValue > 0xFF {
+        jb.CPU.AddFlags(CarryFlag)
+    }
+}
+
+func DecrementRegister(jb *Jamboy, dstRegister Register) {
+    srcValue := int(jb.CPU.ReadRegister(dstRegister))
+    finalValue := int(srcValue)
+
+    jb.CPU.SetFlags(0x0)
+
+    if dstRegister == HL {
+        hl := srcValue
+        srcValue = int(jb.ReadRAM(uint(hl)))
+        finalValue = srcValue - 1
+        jb.WriteRAM(uint16(hl), byte(finalValue))
+    } else {
+        finalValue = srcValue - 1
+        jb.CPU.WriteRegister(dstRegister, uint(srcValue))
+    }
+
+    if finalValue == 0 {
+        jb.CPU.AddFlags(ZeroFlag)
+    }
+
+    if srcValue >= 0x10 && finalValue < 0x10 {
+        jb.CPU.AddFlags(HalfCarryFlag)
+    }
+
+    if finalValue < 0 {
+        jb.CPU.AddFlags(CarryFlag)
+    }
+}
+
+func INCB(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+    dstRegister := incdecBOrderedRegisters[(opcode&0xF0)>>4]
+
+    IncrementRegister(jb, dstRegister)
+
+    return true, nil
+}
+
+func DECA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+    dstRegister := incdecAOrderedRegisters[(opcode&0xF0)>>4]
+
+    DecrementRegister(jb, dstRegister)
+
+    return true, nil
+}
+
+func DECB(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+    dstRegister := incdecBOrderedRegisters[(opcode&0xF0)>>4]
+
+    DecrementRegister(jb, dstRegister)
 
     return true, nil
 }
 
 func JP(jb *Jamboy, opcode OpCode) (finished bool, err error) {
     address := jb.Read16Bit()
+
     jb.CPU.Wait(1)
     jb.CPU.PC = address
 
@@ -73,7 +159,11 @@ func JP(jb *Jamboy, opcode OpCode) (finished bool, err error) {
 }
 
 func JR(jb *Jamboy, opcode OpCode) (finished bool, err error) {
-    panic(fmt.Sprintf("not implemented op JR -  %x", opcode))
+    offset := jb.Read8Bit()
+
+    jb.CPU.WriteRegister(PC, uint(int(jb.CPU.ReadRegister(PC))+int(offset)))
+
+    return true, err
 }
 
 func LDRAMToA(jb *Jamboy, opcode OpCode) (finished bool, err error) {

@@ -46,6 +46,15 @@ type Registers struct {
 	L uint8
 }
 
+type Flag byte
+
+const (
+	ZeroFlag      Flag = 1 << (7 - iota)
+	SubFlag
+	HalfCarryFlag
+	CarryFlag
+)
+
 func (c *CPU) WriteRegister(register Register, value uint) {
 	c.Wait(1)
 	c.WriteRegisterInstant(register, value)
@@ -158,6 +167,14 @@ func (c *CPU) IncrementHL() {
 
 func (c *CPU) DecrementHL() {
 	c.WriteRegisterInstant(HL, c.ReadRegisterInstant(HL)-1)
+}
+
+func (c *CPU) AddFlags(flags Flag){
+	c.WriteRegisterInstant(AF, c.ReadRegisterInstant(AF) | uint(flags))
+}
+
+func (c *CPU) SetFlags(flags Flag){
+	c.WriteRegisterInstant(AF, uint(flags))
 }
 
 func NewCPU(memory *Memory) *CPU {

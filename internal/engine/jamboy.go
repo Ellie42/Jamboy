@@ -81,6 +81,16 @@ func (j *Jamboy) Read8Bit() uint8 {
 	return num
 }
 
+func (j *Jamboy) ReadRAM(p uint) byte {
+	j.CPU.Wait(1)
+	return j.Memory.Read(p)
+}
+
+func (j *Jamboy) WriteRAM(p uint16, b byte) {
+	j.CPU.Wait(1)
+	j.Memory.Write(p, b)
+}
+
 func NewJamboy() *Jamboy {
 	memory := &Memory{}
 
