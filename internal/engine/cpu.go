@@ -149,10 +149,10 @@ func (CPU) ExecuteOp() {
 func (c *CPU) Reset() {
 	c.CurrentJumpTable = &BaseOpJumpTable
 
-	c.WriteRegister(AF, 0x01B0)
-	c.WriteRegister(BC, 0x0013)
-	c.WriteRegister(DE, 0x00D8)
-	c.WriteRegister(HL, 0x014D)
+	c.WriteRegister(AF, 0xB001)
+	c.WriteRegister(BC, 0x1300)
+	c.WriteRegister(DE, 0xD800)
+	c.WriteRegister(HL, 0x4D01)
 	c.SP = 0xFFFE
 	c.PC = 0x0100
 }
@@ -169,12 +169,16 @@ func (c *CPU) DecrementHL() {
 	c.WriteRegisterInstant(HL, c.ReadRegisterInstant(HL)-1)
 }
 
-func (c *CPU) AddFlags(flags Flag){
-	c.WriteRegisterInstant(AF, c.ReadRegisterInstant(AF) | uint(flags))
+func (c *CPU) AddFlags(flags Flag) {
+	c.WriteRegisterInstant(F, c.ReadRegisterInstant(F)|uint(flags))
 }
 
-func (c *CPU) SetFlags(flags Flag){
-	c.WriteRegisterInstant(AF, uint(flags))
+func (c *CPU) SetFlags(flags Flag) {
+	c.WriteRegisterInstant(F, uint(flags))
+}
+
+func (c *CPU) GetFlags() Flag {
+	return Flag(c.ReadRegister(F))
 }
 
 func NewCPU(memory *Memory) *CPU {

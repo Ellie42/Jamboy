@@ -32,10 +32,14 @@ func (j *Jamboy) Tick() error {
 	internal.Logger.Info("exec op",
 		zap.String("func", GetFunctionName((*j.CPU.CurrentJumpTable)[op])),
 		zap.String("code", fmt.Sprintf("0x%x", uint8(op))),
-		zap.String("PC", fmt.Sprintf("0x%x", j.CPU.PC - 1)),
+		zap.String("PC", fmt.Sprintf("0x%x", j.CPU.PC-1)),
 	)
 
 	_, err := (*j.CPU.CurrentJumpTable)[op](j, op)
+
+	for _, reg := range []Register{AF, BC, DE, HL, SP, PC} {
+		fmt.Printf("%s - %04x\n", reg.String(), j.CPU.ReadRegisterInstant(reg))
+	}
 
 	if err != nil {
 		return err
@@ -81,12 +85,18 @@ func (j *Jamboy) Read8Bit() uint8 {
 	return num
 }
 
-func (j *Jamboy) ReadRAM(p uint) byte {
+func (j *Jamboy) ReadRAM(p Address) byte {
 	j.CPU.Wait(1)
+
+	if p.InRange(MemoryROMLow) || p.InRange(MemoryROMHigh) {
+		j.CPU.Wait(1)
+		return j.Cartridge.Data[p]
+	}
+
 	return j.Memory.Read(p)
 }
 
-func (j *Jamboy) WriteRAM(p uint16, b byte) {
+func (j *Jamboy) WriteRAM(p Address, b byte) {
 	j.CPU.Wait(1)
 	j.Memory.Write(p, b)
 }

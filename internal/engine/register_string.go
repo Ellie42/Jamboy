@@ -20,11 +20,13 @@ func _() {
 	_ = x[BC-9]
 	_ = x[DE-10]
 	_ = x[HL-11]
+	_ = x[SP-12]
+	_ = x[PC-13]
 }
 
-const _Register_name = "ABCDEFHLAFBCDEHL"
+const _Register_name = "ABCDEFHLAFBCDEHLSPPC"
 
-var _Register_index = [...]uint8{0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16}
+var _Register_index = [...]uint8{0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 18, 20}
 
 func (i Register) String() string {
 	if i < 0 || i >= Register(len(_Register_index)-1) {

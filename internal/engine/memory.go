@@ -1,10 +1,30 @@
 package engine
 
-type MemorySection uint16
+type MemoryRange struct {
+	From Address
+	To   Address
+}
 
-const (
-	MemoryIO = 0xFF00
+var (
+	MemoryROMLow = MemoryRange{
+		From: Address(0x0000),
+		To:   Address(0x3FFF),
+	}
+	MemoryROMHigh = MemoryRange{
+		From: Address(0x3FFF),
+		To:   Address(0x7FFF),
+	}
 )
+
+type Address uint16
+
+func (a Address) InRange(r MemoryRange) bool {
+	if a >= r.From && a < r.To {
+		return true
+	}
+
+	return false
+}
 
 //  0000-3FFF   16KB ROM Bank 00     (in cartridge, fixed at bank 00)
 //  4000-7FFF   16KB ROM Bank 01..NN (in cartridge, switchable bank number)
@@ -56,10 +76,10 @@ func (m *Memory) Reset() {
 	m.RAM[0xFFFF] = 0x00 //IE
 }
 
-func (m *Memory) Write(pointer uint16, i byte) {
+func (m *Memory) Write(pointer Address, i byte) {
 	m.RAM[pointer] = i
 }
 
-func (m *Memory) Read(hl uint) byte {
-	return m.RAM[hl]
+func (m *Memory) Read(addr Address) byte {
+	return m.RAM[addr]
 }

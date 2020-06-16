@@ -75,15 +75,15 @@ func IncrementRegister(jb *Jamboy, dstRegister Register) {
 
     if dstRegister == HL {
         hl := srcValue
-        srcValue = uint(jb.ReadRAM(hl))
+        srcValue = uint(jb.ReadRAM(Address(hl)))
         finalValue = srcValue + 1
-        jb.WriteRAM(uint16(hl), byte(finalValue))
+        jb.WriteRAM(Address(hl), byte(finalValue))
     } else {
         finalValue = srcValue + 1
-        jb.CPU.WriteRegister(dstRegister, srcValue)
+        jb.CPU.WriteRegister(dstRegister, finalValue)
     }
 
-    if finalValue == 0 {
+    if finalValue >= 256 {
         jb.CPU.AddFlags(ZeroFlag)
     }
 
@@ -100,13 +100,13 @@ func DecrementRegister(jb *Jamboy, dstRegister Register) {
     srcValue := int(jb.CPU.ReadRegister(dstRegister))
     finalValue := int(srcValue)
 
-    jb.CPU.SetFlags(0x0)
+    jb.CPU.SetFlags(SubFlag)
 
     if dstRegister == HL {
         hl := srcValue
-        srcValue = int(jb.ReadRAM(uint(hl)))
+        srcValue = int(jb.ReadRAM(Address(hl)))
         finalValue = srcValue - 1
-        jb.WriteRAM(uint16(hl), byte(finalValue))
+        jb.WriteRAM(Address(hl), byte(finalValue))
     } else {
         finalValue = srcValue - 1
         jb.CPU.WriteRegister(dstRegister, uint(srcValue))
@@ -161,7 +161,16 @@ func JP(jb *Jamboy, opcode OpCode) (finished bool, err error) {
 func JR(jb *Jamboy, opcode OpCode) (finished bool, err error) {
     offset := jb.Read8Bit()
 
-    jb.CPU.WriteRegister(PC, uint(int(jb.CPU.ReadRegister(PC))+int(offset)))
+    switch opcode {
+    case 0x20:
+        if jb.CPU.GetFlags()&ZeroFlag > 0 {
+            return
+        }
+    default:
+        panic(fmt.Sprintf("not implemented JR %02x", opcode))
+    }
+
+    jb.CPU.WriteRegister(PC, uint(int(jb.CPU.ReadRegister(PC))+int(int8(offset))))
 
     return true, err
 }
@@ -171,14 +180,14 @@ func LDRAMToA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
 
     switch opcode & 0xF0 {
     case 0x00:
-        data = jb.Memory.RAM[jb.CPU.ReadRegister(BC)]
+        data = jb.ReadRAM(Address(jb.CPU.ReadRegister(BC)))
     case 0x10:
-        data = jb.Memory.RAM[jb.CPU.ReadRegister(DE)]
+        data = jb.ReadRAM(Address(jb.CPU.ReadRegister(DE)))
     case 0x20:
-        data = jb.Memory.RAM[jb.CPU.ReadRegister(HL)]
+        data = jb.ReadRAM(Address(jb.CPU.ReadRegister(HL)))
         jb.CPU.IncrementHL()
     case 0x30:
-        data = jb.Memory.RAM[jb.CPU.ReadRegister(HL)]
+        data = jb.ReadRAM(Address(jb.CPU.ReadRegister(HL)))
         jb.CPU.DecrementHL()
     }
 
@@ -194,20 +203,20 @@ func LDAToRAM(jb *Jamboy, opcode OpCode) (finished bool, err error) {
     case 0x00:
         register := jb.CPU.ReadRegister(BC)
         jb.CPU.Wait(1)
-        jb.Memory.Write(uint16(register), data)
+        jb.Memory.Write(Address(register), data)
     case 0x10:
         register := jb.CPU.ReadRegister(DE)
         jb.CPU.Wait(1)
-        jb.Memory.Write(uint16(register), data)
+        jb.Memory.Write(Address(register), data)
     case 0x20:
         register := jb.CPU.ReadRegister(HL)
         jb.CPU.Wait(1)
-        jb.Memory.Write(uint16(register), data)
+        jb.Memory.Write(Address(register), data)
         jb.CPU.IncrementHL()
     case 0x30:
         register := jb.CPU.ReadRegister(HL)
         jb.CPU.Wait(1)
-        jb.Memory.Write(uint16(register), data)
+        jb.Memory.Write(Address(register), data)
         jb.CPU.DecrementHL()
     }
 
@@ -261,13 +270,13 @@ func LD(jb *Jamboy, opcode OpCode) (finished bool, err error) {
 
         if dstRegister == 255 {
             // (HL) = r
-            jb.Memory.RAM[jb.CPU.ReadRegister(HL)] = jb.CPU.Registers[srcRegister]
+            jb.WriteRAM(Address(jb.CPU.ReadRegister(HL)), byte(jb.CPU.ReadRegisterInstant(srcRegister)))
         } else if opSeq == 6 {
             // r = (HL)
-            jb.CPU.Registers[dstRegister] = jb.Memory.RAM[jb.CPU.ReadRegister(HL)]
+            jb.CPU.WriteRegisterInstant(dstRegister, uint(jb.ReadRAM(Address(jb.CPU.ReadRegister(HL)))))
         } else {
             //r = r
-            jb.CPU.WriteRegister(dstRegister, uint(jb.CPU.Registers[srcRegister]))
+            jb.CPU.WriteRegister(dstRegister, uint(jb.CPU.ReadRegisterInstant(srcRegister)))
         }
     } else {
         panic(fmt.Sprintf("not implemented LD %x", opcode))
