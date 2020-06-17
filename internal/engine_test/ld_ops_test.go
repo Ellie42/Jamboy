@@ -10,7 +10,7 @@ import (
 
 func TestLDd16(t *testing.T) {
 	tests := []struct {
-		r  engine.Register
+		r  engine.RegisterID
 		op engine.OpCode
 	}{
 		{
@@ -51,7 +51,7 @@ func TestLD(t *testing.T) {
 	baseOp := uint8(0x40)
 
 	tests := []struct {
-		r  engine.Register
+		r  engine.RegisterID
 		op uint8
 	}{
 		{
@@ -84,8 +84,8 @@ func TestLD(t *testing.T) {
 		},
 	}
 
-	var ldOrderedRegisters = []engine.Register{
-		engine.B, engine.C, engine.D, engine.E, engine.H, engine.L, engine.Register(255), engine.A,
+	var ldOrderedRegisters = []engine.RegisterID{
+		engine.B, engine.C, engine.D, engine.E, engine.H, engine.L, engine.RegisterID(255), engine.A,
 	}
 
 	for loop := 0; loop < 8; loop++ {

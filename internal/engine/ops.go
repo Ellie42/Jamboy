@@ -52,11 +52,11 @@ func HALT(jb *Jamboy, opcode OpCode) (finished bool, err error) {
     panic(fmt.Sprintf("not implemented op HALT -  %x", opcode))
 }
 
-var incdecAOrderedRegisters = []Register{
+var incdecAOrderedRegisters = []RegisterID{
     B, D, H, HL,
 }
 
-var incdecBOrderedRegisters = []Register{
+var incdecBOrderedRegisters = []RegisterID{
     C, E, L, A,
 }
 
@@ -67,7 +67,7 @@ func INCA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
     return true, nil
 }
 
-func IncrementRegister(jb *Jamboy, dstRegister Register) {
+func IncrementRegister(jb *Jamboy, dstRegister RegisterID) {
     srcValue := jb.CPU.ReadRegister(dstRegister)
     finalValue := uint(srcValue)
 
@@ -96,7 +96,7 @@ func IncrementRegister(jb *Jamboy, dstRegister Register) {
     }
 }
 
-func DecrementRegister(jb *Jamboy, dstRegister Register) {
+func DecrementRegister(jb *Jamboy, dstRegister RegisterID) {
     srcValue := int(jb.CPU.ReadRegister(dstRegister))
     finalValue := int(srcValue)
 
@@ -109,7 +109,7 @@ func DecrementRegister(jb *Jamboy, dstRegister Register) {
         jb.WriteRAM(Address(hl), byte(finalValue))
     } else {
         finalValue = srcValue - 1
-        jb.CPU.WriteRegister(dstRegister, uint(srcValue))
+        jb.CPU.WriteRegister(dstRegister, uint(finalValue))
     }
 
     if finalValue == 0 {
@@ -152,8 +152,8 @@ func DECB(jb *Jamboy, opcode OpCode) (finished bool, err error) {
 func JP(jb *Jamboy, opcode OpCode) (finished bool, err error) {
     address := jb.Read16Bit()
 
-    jb.CPU.Wait(1)
-    jb.CPU.PC = address
+    jb.CPU.WriteRegister(PC, uint(address))
+
 
     return true, nil
 }
@@ -202,28 +202,24 @@ func LDAToRAM(jb *Jamboy, opcode OpCode) (finished bool, err error) {
     switch opcode & 0xF0 {
     case 0x00:
         register := jb.CPU.ReadRegister(BC)
-        jb.CPU.Wait(1)
-        jb.Memory.Write(Address(register), data)
+        jb.WriteRAM(Address(register), data)
     case 0x10:
         register := jb.CPU.ReadRegister(DE)
-        jb.CPU.Wait(1)
-        jb.Memory.Write(Address(register), data)
+        jb.WriteRAM(Address(register), data)
     case 0x20:
         register := jb.CPU.ReadRegister(HL)
-        jb.CPU.Wait(1)
-        jb.Memory.Write(Address(register), data)
+        jb.WriteRAM(Address(register), data)
         jb.CPU.IncrementHL()
     case 0x30:
         register := jb.CPU.ReadRegister(HL)
-        jb.CPU.Wait(1)
-        jb.Memory.Write(Address(register), data)
+        jb.WriteRAM(Address(register), data)
         jb.CPU.DecrementHL()
     }
 
     return true, err
 }
 
-var ld8OrderedRegisters = []Register{
+var ld8OrderedRegisters = []RegisterID{
     C, E, L, A,
 }
 
@@ -236,7 +232,7 @@ func LDd8(jb *Jamboy, opcode OpCode) (finished bool, err error) {
 }
 
 func LDd16(jb *Jamboy, opcode OpCode) (finished bool, err error) {
-    register := Register(0)
+    register := RegisterID(0)
 
     switch opcode {
     case 0x01:
@@ -256,8 +252,8 @@ func LDd16(jb *Jamboy, opcode OpCode) (finished bool, err error) {
     return true, err
 }
 
-var ldOrderedRegisters = []Register{
-    B, C, D, E, H, L, Register(255), A,
+var ldOrderedRegisters = []RegisterID{
+    B, C, D, E, H, L, RegisterID(255), A,
 }
 
 func LD(jb *Jamboy, opcode OpCode) (finished bool, err error) {

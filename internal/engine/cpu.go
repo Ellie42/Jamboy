@@ -1,5 +1,7 @@
 package engine
 
+import "fmt"
+
 // REMEMBER LITTLE ENDIAN
 type CPU struct {
 	PC uint16
@@ -13,67 +15,73 @@ type CPU struct {
 }
 
 //go:generate stringer -type=Register -linecomment
-type Register int
+type RegisterID int
 
 const (
-	A  Register = iota // A
-	B                  // B
-	C                  // C
-	D                  // D
-	E                  // E
-	F                  // F
-	H                  // H
-	L                  // L
-	AF                 // AF
-	BC                 // BC
-	DE                 // DE
-	HL                 // HL
-	SP                 // SP
-	PC                 // PC
+	A  RegisterID = iota // A
+	B                    // B
+	C                    // C
+	D                    // D
+	E                    // E
+	F                    // F
+	H                    // H
+	L                    // L
+	AF                   // AF
+	BC                   // BC
+	DE                   // DE
+	HL                   // HL
+	SP                   // SP
+	PC                   // PC
 )
 
+type Register byte
+
 type Registers struct {
-	A uint8
-	B uint8
-	C uint8
-	D uint8
-	E uint8
+	A Register
+	B Register
+	C Register
+	D Register
+	E Register
 
 	// Holds CPU flags
 	// Lower nibble always 0
-	F uint8
-	H uint8
-	L uint8
+	F Register
+	H Register
+	L Register
+}
+
+func (r Register) String() string {
+	return fmt.Sprintf("0x%02x", r)
 }
 
 type Flag byte
 
 const (
-	ZeroFlag      Flag = 1 << (7 - iota)
+	ZeroFlag Flag = 1 << (7 - iota)
 	SubFlag
 	HalfCarryFlag
 	CarryFlag
 )
 
-func (c *CPU) WriteRegister(register Register, value uint) {
+func (c *CPU) WriteRegister(register RegisterID, value uint) {
 	c.Wait(1)
 	c.WriteRegisterInstant(register, value)
 }
 
-func (c *CPU) WriteRegisterInstant(register Register, value uint) {
+func (c *CPU) WriteRegisterInstant(register RegisterID, value uint) {
 	switch register {
 	case AF:
-		c.Registers[A] = uint8(value & 0x00FF)
-		c.Registers[F] = uint8((value & 0xFF00) >> 8)
+		c.Registers[F] = byte(value & 0x00FF)
+		c.Registers[A] = byte((value & 0xFF00) >> 8)
 	case BC:
-		c.Registers[B] = uint8(value & 0x00FF)
-		c.Registers[C] = uint8((value & 0xFF00) >> 8)
+		c.Registers[C] = byte(value & 0x00FF)
+		c.Registers[B] = byte((value & 0xFF00) >> 8)
 	case DE:
-		c.Registers[D] = uint8(value & 0x00FF)
-		c.Registers[E] = uint8((value & 0xFF00) >> 8)
+		c.Registers[E] = byte(value & 0x00FF)
+		c.Registers[D] = byte((value & 0xFF00) >> 8)
 	case HL:
-		c.Registers[H] = uint8(value & 0x00FF)
-		c.Registers[L] = uint8((value & 0xFF00) >> 8)
+		c.Registers[L] = byte(value & 0x00FF)
+		c.Registers[H] = byte((value & 0xFF00) >> 8)
 	case A:
 		fallthrough
 	case B:
@@ -89,7 +97,7 @@ func (c *CPU) WriteRegisterInstant(register Register, value uint) {
 	case H:
 		fallthrough
 	case L:
-		c.Registers[register] = uint8(value)
+		c.Registers[register] = byte(value)
 	case SP:
 		c.SP = uint16(value)
 	case PC:
@@ -97,26 +105,26 @@ func (c *CPU) WriteRegisterInstant(register Register, value uint) {
 	}
 }
 
-func (c *CPU) ReadRegister(register Register) uint {
+func (c *CPU) ReadRegister(register RegisterID) uint {
 	c.Wait(1)
 
 	return c.ReadRegisterInstant(register)
 }
 
-func (c *CPU) ReadRegisterInstant(register Register) (value uint) {
+func (c *CPU) ReadRegisterInstant(register RegisterID) (value uint) {
 	switch register {
 	case AF:
-		value = uint(c.Registers[A])
-		value |= (uint(c.Registers[F]) << 8)
+		value = uint(c.Registers[F])
+		value |= (uint(c.Registers[A]) << 8)
 	case BC:
-		value = uint(c.Registers[B])
-		value |= (uint(c.Registers[C]) << 8)
+		value = uint(c.Registers[C])
+		value |= (uint(c.Registers[B]) << 8)
 	case DE:
-		value = uint(c.Registers[D])
-		value |= (uint(c.Registers[E]) << 8)
+		value = uint(c.Registers[E])
+		value |= (uint(c.Registers[D]) << 8)
 	case HL:
-		value = uint(c.Registers[H])
-		value |= (uint(c.Registers[L]) << 8)
+		value = uint(c.Registers[L])
+		value |= (uint(c.Registers[H]) << 8)
 	case A:
 		fallthrough
 	case B:
@@ -149,10 +157,10 @@ func (CPU) ExecuteOp() {
 func (c *CPU) Reset() {
 	c.CurrentJumpTable = &BaseOpJumpTable
 
-	c.WriteRegister(AF, 0xB001)
-	c.WriteRegister(BC, 0x1300)
-	c.WriteRegister(DE, 0xD800)
-	c.WriteRegister(HL, 0x4D01)
+	c.WriteRegister(AF, 0x01B0)
+	c.WriteRegister(BC, 0x0013)
+	c.WriteRegister(DE, 0x00D8)
+	c.WriteRegister(HL, 0x014D)
 	c.SP = 0xFFFE
 	c.PC = 0x0100
 }

@@ -68,12 +68,12 @@ func TestRegisters_GetMultiRegister(t *testing.T) {
 }
 
 func GetTestRegisters() []struct {
-	multiRegister engine.Register
+	multiRegister engine.RegisterID
 	a             *uint8
 	b             *uint8
 } {
 	registers := []struct {
-		multiRegister engine.Register
+		multiRegister engine.RegisterID
 		a             *uint8
 		b             *uint8
 	}{

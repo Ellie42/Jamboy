@@ -2,8 +2,6 @@ package engine
 
 import (
 	"fmt"
-	"git.agehadev.com/elliebelly/jamboy/internal"
-	"go.uber.org/zap"
 	"reflect"
 	"runtime"
 	"strings"
@@ -29,17 +27,19 @@ func (j *Jamboy) PowerOn() {
 func (j *Jamboy) Tick() error {
 	op := j.CPU.CurrentOP
 
-	internal.Logger.Info("exec op",
-		zap.String("func", GetFunctionName((*j.CPU.CurrentJumpTable)[op])),
-		zap.String("code", fmt.Sprintf("0x%x", uint8(op))),
-		zap.String("PC", fmt.Sprintf("0x%x", j.CPU.PC-1)),
-	)
+	//internal.Logger.Info("exec op",
+	//	zap.String("func", GetFunctionName((*j.CPU.CurrentJumpTable)[op])),
+	//	zap.String("code", fmt.Sprintf("0x%x", uint8(op))),
+	//	zap.String("PC", fmt.Sprintf("0x%x", j.CPU.PC-1)),
+	//)
+
+	fmt.Printf("%s 0x%04x PC:0x%04x %v\n", GetFunctionName((*j.CPU.CurrentJumpTable)[op]), op, j.CPU.PC-1, j.CPU.Registers)
 
 	_, err := (*j.CPU.CurrentJumpTable)[op](j, op)
 
-	for _, reg := range []Register{AF, BC, DE, HL, SP, PC} {
-		fmt.Printf("%s - %04x\n", reg.String(), j.CPU.ReadRegisterInstant(reg))
-	}
+	//for _, reg := range []Register{AF, BC, DE, HL, SP, PC} {
+	//	fmt.Printf("%s - %04x\n", reg.String(), j.CPU.ReadRegisterInstant(reg))
+	//}
 
 	if err != nil {
 		return err
@@ -72,7 +72,7 @@ func (j *Jamboy) Read16Bit() uint16 {
 	pcl := j.NextOp()
 	pch := j.NextOp()
 
-	internal.Logger.Info("read 16bit", zap.String("value", fmt.Sprintf("0x%x", (uint16(pch)<<8)|uint16(pcl))))
+	//internal.Logger.Info("read 16bit", zap.String("value", fmt.Sprintf("0x%x", (uint16(pch)<<8)|uint16(pcl))))
 
 	return (uint16(pch) << 8) | uint16(pcl)
 }
@@ -80,7 +80,7 @@ func (j *Jamboy) Read16Bit() uint16 {
 func (j *Jamboy) Read8Bit() uint8 {
 	num := uint8(j.NextOp())
 
-	internal.Logger.Info("read 8bit", zap.Uint8("value", num))
+	//internal.Logger.Info("read 8bit", zap.Uint8("value", num))
 
 	return num
 }
