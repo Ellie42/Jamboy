@@ -33,13 +33,23 @@ func (j *Jamboy) Tick() error {
 	//	zap.String("PC", fmt.Sprintf("0x%x", j.CPU.PC-1)),
 	//)
 
-	fmt.Printf("%s 0x%04x PC:0x%04x %v\n", GetFunctionName((*j.CPU.CurrentJumpTable)[op]), op, j.CPU.PC-1, j.CPU.Registers)
+	//fmt.Printf("%s 0x%04x PC:0x%04x %v\n", GetFunctionName((*j.CPU.CurrentJumpTable)[op]), op, j.CPU.PC-1, j.CPU.Registers)
 
 	_, err := (*j.CPU.CurrentJumpTable)[op](j, op)
 
-	//for _, reg := range []Register{AF, BC, DE, HL, SP, PC} {
-	//	fmt.Printf("%s - %04x\n", reg.String(), j.CPU.ReadRegisterInstant(reg))
-	//}
+	fmt.Printf(`%s
+AF %02x%02x BC %02x%02x
+DE %02x%02x HL %02x%02x
+SP %04x PC %04x
+-------------------
+`,
+		GetFunctionName((*j.CPU.CurrentJumpTable)[op]),
+		j.CPU.Registers[A], j.CPU.Registers[F],
+		j.CPU.Registers[B], j.CPU.Registers[C],
+		j.CPU.Registers[D], j.CPU.Registers[E],
+		j.CPU.Registers[H], j.CPU.Registers[L],
+		j.CPU.SP, j.CPU.PC,
+	)
 
 	if err != nil {
 		return err
@@ -51,7 +61,7 @@ func (j *Jamboy) Tick() error {
 }
 
 func (j *Jamboy) NextOpInstant() (op OpCode) {
-	op = OpCode(j.Cartridge.Data[j.CPU.PC])
+	op = OpCode(j.ReadRAMInstant(Address(j.CPU.PC)))
 
 	j.CPU.PC += 1
 
@@ -61,7 +71,7 @@ func (j *Jamboy) NextOpInstant() (op OpCode) {
 func (j *Jamboy) NextOp() (op OpCode) {
 	j.CPU.Wait(1)
 
-	op = OpCode(j.Cartridge.Data[j.CPU.PC])
+	op = OpCode(j.ReadRAM(Address(j.CPU.PC)))
 
 	j.CPU.PC += 1
 
@@ -88,8 +98,11 @@ func (j *Jamboy) Read8Bit() uint8 {
 func (j *Jamboy) ReadRAM(p Address) byte {
 	j.CPU.Wait(1)
 
-	if p.InRange(MemoryROMLow) || p.InRange(MemoryROMHigh) {
-		j.CPU.Wait(1)
+	return j.ReadRAMInstant(p)
+}
+
+func (j *Jamboy) ReadRAMInstant(p Address) byte {
+	if p.InRange(CartROM0) || p.InRange(CartROMN) {
 		return j.Cartridge.Data[p]
 	}
 

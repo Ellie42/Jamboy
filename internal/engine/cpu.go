@@ -71,7 +71,7 @@ func (c *CPU) WriteRegister(register RegisterID, value uint) {
 func (c *CPU) WriteRegisterInstant(register RegisterID, value uint) {
 	switch register {
 	case AF:
-		c.Registers[F] = byte(value & 0x00FF)
+		c.Registers[F] = byte(value & 0x00F0)
 		c.Registers[A] = byte((value & 0xFF00) >> 8)
 	case BC:
 		c.Registers[C] = byte(value & 0x00FF)
@@ -83,19 +83,19 @@ func (c *CPU) WriteRegisterInstant(register RegisterID, value uint) {
 		c.Registers[L] = byte(value & 0x00FF)
 		c.Registers[H] = byte((value & 0xFF00) >> 8)
 	case A:
-		fallthrough
+		c.Registers[register] = byte(value)
 	case B:
-		fallthrough
+		c.Registers[register] = byte(value)
 	case C:
-		fallthrough
+		c.Registers[register] = byte(value)
 	case D:
-		fallthrough
+		c.Registers[register] = byte(value)
 	case E:
-		fallthrough
+		c.Registers[register] = byte(value)
 	case F:
-		fallthrough
+		c.Registers[register] = byte(value & 0xF0)
 	case H:
-		fallthrough
+		c.Registers[register] = byte(value)
 	case L:
 		c.Registers[register] = byte(value)
 	case SP:

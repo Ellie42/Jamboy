@@ -6,11 +6,11 @@ type MemoryRange struct {
 }
 
 var (
-	MemoryROMLow = MemoryRange{
+	CartROM0 = MemoryRange{
 		From: Address(0x0000),
 		To:   Address(0x3FFF),
 	}
-	MemoryROMHigh = MemoryRange{
+	CartROMN = MemoryRange{
 		From: Address(0x3FFF),
 		To:   Address(0x7FFF),
 	}
@@ -19,7 +19,7 @@ var (
 type Address uint16
 
 func (a Address) InRange(r MemoryRange) bool {
-	if a >= r.From && a < r.To {
+	if a >= r.From && a <= r.To {
 		return true
 	}
 
