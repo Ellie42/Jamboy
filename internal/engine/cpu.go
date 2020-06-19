@@ -9,9 +9,10 @@ type CPU struct {
 
 	Registers []uint8
 
-	memory           *Memory
+	memory           *MMU
 	CurrentJumpTable *[]func(jb *Jamboy, opcode OpCode) (finished bool, err error)
 	CurrentOP        OpCode
+	Jamboy           *Jamboy
 }
 
 //go:generate stringer -type=Register -linecomment
@@ -189,9 +190,9 @@ func (c *CPU) GetFlags() Flag {
 	return Flag(c.ReadRegister(F))
 }
 
-func NewCPU(memory *Memory) *CPU {
+func NewCPU(jb *Jamboy) *CPU {
 	return &CPU{
-		memory:    memory,
+		Jamboy:    jb,
 		Registers: make([]uint8, 8),
 	}
 }

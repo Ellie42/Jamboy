@@ -10,7 +10,7 @@ import (
 var cpu *engine.CPU
 
 func TestMain(m *testing.M) {
-	cpu = engine.NewCPU(&engine.Memory{})
+	cpu = engine.NewCPU(&engine.MMU{})
 
 	os.Exit(m.Run())
 }

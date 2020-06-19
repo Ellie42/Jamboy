@@ -38,11 +38,12 @@ func (a Address) InRange(r MemoryRange) bool {
 //  FF00-FF7F   I/O Ports
 //  FF80-FFFE   High RAM (HRAM)
 //  FFFF        Interrupt Enable Register
-type Memory struct {
-	RAM [0x10000]byte
+type MMU struct {
+	Jamboy *Jamboy
+	RAM    [0x10000]byte
 }
 
-func (m *Memory) Reset() {
+func (m *MMU) Reset() {
 	m.RAM[0xFF05] = 0x00 //TIMA
 	m.RAM[0xFF06] = 0x00 //TMA
 	m.RAM[0xFF07] = 0x00 //TAC
@@ -76,10 +77,29 @@ func (m *Memory) Reset() {
 	m.RAM[0xFFFF] = 0x00 //IE
 }
 
-func (m *Memory) Write(pointer Address, i byte) {
-	m.RAM[pointer] = i
+func (m *MMU) Write(addr Address, i byte) {
+	m.Jamboy.CPU.Wait(1)
+
+	m.RAM[addr] = i
 }
 
-func (m *Memory) Read(addr Address) byte {
+func (m *MMU) Read(addr Address) byte {
+	m.Jamboy.CPU.Wait(1)
+
+	return m.ReadInstant(addr)
+}
+
+func (m *MMU) ReadInstant(addr Address) byte {
+	if addr.InRange(CartROM0) || addr.InRange(CartROMN) {
+		return m.Jamboy.Cart.Data[addr]
+	}
+
 	return m.RAM[addr]
+}
+
+func newMMU(jb *Jamboy) *MMU {
+	return &MMU{
+		Jamboy: jb,
+		RAM:    [65536]byte{},
+	}
 }

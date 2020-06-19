@@ -75,9 +75,9 @@ func IncrementRegister(jb *Jamboy, dstRegister RegisterID) {
 
     if dstRegister == HL {
         hl := srcValue
-        srcValue = uint(jb.ReadRAM(Address(hl)))
+        srcValue = uint(jb.MMU.Read(Address(hl)))
         finalValue = srcValue + 1
-        jb.WriteRAM(Address(hl), byte(finalValue))
+        jb.MMU.Write(Address(hl), byte(finalValue))
     } else {
         finalValue = srcValue + 1
         jb.CPU.WriteRegister(dstRegister, finalValue)
@@ -104,9 +104,9 @@ func DecrementRegister(jb *Jamboy, dstRegister RegisterID) {
 
     if dstRegister == HL {
         hl := srcValue
-        srcValue = int(jb.ReadRAM(Address(hl)))
+        srcValue = int(jb.MMU.Read(Address(hl)))
         finalValue = srcValue - 1
-        jb.WriteRAM(Address(hl), byte(finalValue))
+        jb.MMU.Write(Address(hl), byte(finalValue))
     } else {
         finalValue = srcValue - 1
         jb.CPU.WriteRegister(dstRegister, uint(finalValue))
@@ -180,15 +180,15 @@ func LDRAMToA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
 
     switch opcode & 0xF0 {
     case 0x00:
-        data = jb.ReadRAM(Address(jb.CPU.ReadRegister(BC)))
+        data = jb.MMU.Read(Address(jb.CPU.ReadRegister(BC)))
     case 0x10:
-        data = jb.ReadRAM(Address(jb.CPU.ReadRegister(DE)))
+        data = jb.MMU.Read(Address(jb.CPU.ReadRegister(DE)))
     case 0x20:
-        data = jb.ReadRAM(Address(jb.CPU.ReadRegister(HL)))
+        data = jb.MMU.Read(Address(jb.CPU.ReadRegister(HL)))
         jb.CPU.IncrementHL()
     case 0x30:
         jb.CPU.DecrementHL()
-        data = jb.ReadRAM(Address(jb.CPU.ReadRegister(HL)))
+        data = jb.MMU.Read(Address(jb.CPU.ReadRegister(HL)))
     }
 
     jb.CPU.WriteRegister(A, uint(data))
@@ -202,18 +202,18 @@ func LDAToRAM(jb *Jamboy, opcode OpCode) (finished bool, err error) {
     switch opcode & 0xF0 {
     case 0x00:
         register := jb.CPU.ReadRegister(BC)
-        jb.WriteRAM(Address(register), data)
+        jb.MMU.Write(Address(register), data)
     case 0x10:
         register := jb.CPU.ReadRegister(DE)
-        jb.WriteRAM(Address(register), data)
+        jb.MMU.Write(Address(register), data)
     case 0x20:
         register := jb.CPU.ReadRegister(HL)
-        jb.WriteRAM(Address(register), data)
+        jb.MMU.Write(Address(register), data)
         jb.CPU.IncrementHL()
     case 0x30:
         jb.CPU.DecrementHL()
         register := jb.CPU.ReadRegister(HL)
-        jb.WriteRAM(Address(register), data)
+        jb.MMU.Write(Address(register), data)
     }
 
     return true, err
@@ -266,10 +266,10 @@ func LD(jb *Jamboy, opcode OpCode) (finished bool, err error) {
 
         if dstRegister == 255 {
             // (HL) = r
-            jb.WriteRAM(Address(jb.CPU.ReadRegister(HL)), byte(jb.CPU.ReadRegisterInstant(srcRegister)))
+            jb.MMU.Write(Address(jb.CPU.ReadRegister(HL)), byte(jb.CPU.ReadRegisterInstant(srcRegister)))
         } else if opSeq == 6 {
             // r = (HL)
-            jb.CPU.WriteRegisterInstant(dstRegister, uint(jb.ReadRAM(Address(jb.CPU.ReadRegister(HL)))))
+            jb.CPU.WriteRegisterInstant(dstRegister, uint(jb.MMU.Read(Address(jb.CPU.ReadRegister(HL)))))
         } else {
             //r = r
             jb.CPU.WriteRegister(dstRegister, uint(jb.CPU.ReadRegisterInstant(srcRegister)))

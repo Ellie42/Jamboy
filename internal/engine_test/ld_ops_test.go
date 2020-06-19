@@ -104,7 +104,7 @@ func TestLD(t *testing.T) {
 				assert.Nil(t, err)
 
 				assert.Equal(
-					t, uint8(0xCC), jb.Memory.RAM[jb.CPU.ReadRegister(engine.HL)],
+					t, uint8(0xCC), jb.MMU.RAM[jb.CPU.ReadRegister(engine.HL)],
 					fmt.Sprintf("RAM does not match expected - src: %s dst: (HL)", test.r))
 			}
 		} else {
@@ -126,7 +126,7 @@ func TestLD(t *testing.T) {
 			_, jb := newTestJamboy()
 
 			jb.CPU.WriteRegister(engine.HL, 0x01)
-			jb.Memory.Write(0x01, 0xC0)
+			jb.MMU.Write(0x01, 0xC0)
 
 			finished, err := engine.LD(jb, engine.OpCode(baseOp+0x06))
 

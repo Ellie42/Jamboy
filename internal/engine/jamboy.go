@@ -8,18 +8,18 @@ import (
 )
 
 type Jamboy struct {
-	CPU       *CPU
-	Cartridge *Cart
-	Memory    *Memory
+	CPU  *CPU
+	Cart *Cart
+	MMU  *MMU
 }
 
 func (j *Jamboy) InsertCartridge(cart *Cart) {
-	j.Cartridge = cart
+	j.Cart = cart
 }
 
 func (j *Jamboy) PowerOn() {
 	j.CPU.Reset()
-	j.Memory.Reset()
+	j.MMU.Reset()
 
 	j.CPU.CurrentOP = j.NextOp()
 }
@@ -61,7 +61,7 @@ SP %04x PC %04x
 }
 
 func (j *Jamboy) NextOpInstant() (op OpCode) {
-	op = OpCode(j.ReadRAMInstant(Address(j.CPU.PC)))
+	op = OpCode(j.MMU.ReadInstant(Address(j.CPU.PC)))
 
 	j.CPU.PC += 1
 
@@ -71,7 +71,7 @@ func (j *Jamboy) NextOpInstant() (op OpCode) {
 func (j *Jamboy) NextOp() (op OpCode) {
 	j.CPU.Wait(1)
 
-	op = OpCode(j.ReadRAM(Address(j.CPU.PC)))
+	op = OpCode(j.MMU.Read(Address(j.CPU.PC)))
 
 	j.CPU.PC += 1
 
@@ -95,32 +95,13 @@ func (j *Jamboy) Read8Bit() uint8 {
 	return num
 }
 
-func (j *Jamboy) ReadRAM(p Address) byte {
-	j.CPU.Wait(1)
-
-	return j.ReadRAMInstant(p)
-}
-
-func (j *Jamboy) ReadRAMInstant(p Address) byte {
-	if p.InRange(CartROM0) || p.InRange(CartROMN) {
-		return j.Cartridge.Data[p]
-	}
-
-	return j.Memory.Read(p)
-}
-
-func (j *Jamboy) WriteRAM(p Address, b byte) {
-	j.CPU.Wait(1)
-	j.Memory.Write(p, b)
-}
-
 func NewJamboy() *Jamboy {
-	memory := &Memory{}
+	jb := &Jamboy{}
 
-	return &Jamboy{
-		Memory: memory,
-		CPU:    NewCPU(memory),
-	}
+	jb.MMU = newMMU(jb)
+	jb.CPU = NewCPU(jb)
+
+	return jb
 }
 
 func GetFunctionName(i interface{}) string {
