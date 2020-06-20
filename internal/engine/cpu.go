@@ -9,7 +9,6 @@ type CPU struct {
 
 	Registers []uint8
 
-	memory           *MMU
 	CurrentJumpTable *[]func(jb *Jamboy, opcode OpCode) (err error)
 	CurrentOP        OpCode
 	Jamboy           *Jamboy
@@ -188,6 +187,138 @@ func (c *CPU) SetFlags(flags Flag) {
 
 func (c *CPU) GetFlags() Flag {
 	return Flag(c.ReadRegister(F))
+}
+
+func (c *CPU) IsFlagSet(flag Flag) bool {
+	return c.GetFlags()&flag > 0
+}
+
+func (c *CPU) Call(pointer uint16) {
+	returnAddr := c.PC
+
+	c.PushUint16(returnAddr)
+
+	c.Jump(pointer)
+}
+
+func (c *CPU) PushUint16(data uint16) {
+	c.Push(byte((data & 0xFF00 >> 8)))
+	c.Push(byte((data & 0x00FF)))
+}
+
+func (c *CPU) Push(data byte) {
+	c.SP -= 1
+	c.Jamboy.MMU.Write(Address(c.SP), data)
+}
+
+func (c *CPU) Pop() (data byte) {
+	data = c.Jamboy.MMU.Read(Address(c.SP))
+	c.SP += 1
+	return
+}
+
+func (c *CPU) PopUint16() (data uint16) {
+	data = uint16(c.Pop())
+	data |= uint16(c.Pop()) << 8
+	return
+}
+
+func (c *CPU) Jump(pointer uint16) {
+	c.WriteRegister(PC, uint(pointer))
+}
+
+func (c *CPU) Return() {
+	c.Jump(c.PopUint16())
+}
+
+func (c *CPU) AddR8(a RegisterID, b RegisterID, withCarry bool) {
+	bValue := uint8(0)
+
+	if b == HL {
+		bValue = c.Jamboy.MMU.Read(Address(c.ReadRegisterInstant(b)))
+	} else {
+		bValue = uint8(c.ReadRegister(b))
+	}
+
+	c.Add(a, bValue, withCarry)
+}
+
+func (c *CPU) Add(a RegisterID, b uint8, withCarry bool) {
+	srcValue := c.ReadRegister(a)
+	finalValue := uint(srcValue)
+
+	if withCarry && c.IsFlagSet(CarryFlag) {
+		finalValue += 1
+	}
+
+	c.SetFlags(Flag(c.Registers[F] & 0x10))
+
+	if a == HL {
+		hl := srcValue
+		srcValue = uint(c.Jamboy.MMU.Read(Address(hl)))
+		finalValue = srcValue + uint(b)
+		c.Jamboy.MMU.Write(Address(hl), byte(finalValue))
+	} else {
+		finalValue = srcValue + uint(b)
+		c.WriteRegister(a, finalValue)
+	}
+
+	if finalValue >= 0x100 {
+		c.AddFlags(ZeroFlag)
+	}
+
+	if srcValue < 0x10 && finalValue >= 0x10 {
+		c.AddFlags(HalfCarryFlag)
+	}
+
+	if finalValue > 0xFF {
+		c.AddFlags(CarryFlag)
+	}
+}
+
+func (c *CPU) SubtractR8(a RegisterID, b RegisterID, withCarry bool) {
+	bValue := uint8(0)
+
+	if b == HL {
+		bValue = c.Jamboy.MMU.Read(Address(c.ReadRegisterInstant(b)))
+	} else {
+		bValue = uint8(c.ReadRegister(b))
+	}
+
+	c.Subtract(a, bValue, withCarry)
+}
+
+func (c *CPU) Subtract(a RegisterID, b uint8, withCarry bool) {
+	srcValue := int(c.ReadRegister(a))
+	finalValue := int(srcValue)
+
+	if withCarry && c.IsFlagSet(CarryFlag) {
+		finalValue -= 1
+	}
+
+	c.SetFlags(Flag(c.Registers[F]&0x10) | SubFlag)
+
+	if a == HL {
+		hl := srcValue
+		srcValue = int(c.Jamboy.MMU.Read(Address(hl)))
+		finalValue = srcValue - int(b)
+		c.Jamboy.MMU.Write(Address(hl), byte(finalValue))
+	} else {
+		finalValue = srcValue - int(b)
+		c.WriteRegister(a, uint(finalValue))
+	}
+
+	if finalValue == 0 {
+		c.AddFlags(ZeroFlag)
+	}
+
+	if srcValue >= 0x10 && finalValue < 0x10 {
+		c.AddFlags(HalfCarryFlag)
+	}
+
+	if finalValue < 0 {
+		c.AddFlags(CarryFlag)
+	}
 }
 
 func NewCPU(jb *Jamboy) *CPU {

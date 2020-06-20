@@ -4,12 +4,24 @@ import (
     "fmt"
 )
 
+var fullOrderedRegisters = []RegisterID{
+    B, C, D, E, H, L, RegisterID(255), A,
+}
+
 func ADC(jb *Jamboy, opcode OpCode) (err error) {
-    panic(fmt.Sprintf("not implemented op ADC -  %x", opcode))
+    register := fullOrderedRegisters[opcode&0x0F]
+
+    jb.CPU.AddR8(A, register, true)
+
+    return nil
 }
 
 func ADD(jb *Jamboy, opcode OpCode) (err error) {
-    panic(fmt.Sprintf("not implemented op ADD -  %x", opcode))
+    register := fullOrderedRegisters[opcode&0x0F]
+
+    jb.CPU.AddR8(A, register, false)
+
+    return nil
 }
 
 func AND(jb *Jamboy, opcode OpCode) (err error) {
@@ -17,7 +29,32 @@ func AND(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func CALL(jb *Jamboy, opcode OpCode) (err error) {
-    panic(fmt.Sprintf("not implemented op CALL -  %x", opcode))
+    jb.CPU.Wait(1)
+
+    switch opcode {
+    case 0xC4:
+        if !jb.CPU.IsFlagSet(ZeroFlag) {
+            jb.CPU.Call(jb.Read16Bit())
+        }
+    case 0xD4:
+        if !jb.CPU.IsFlagSet(CarryFlag) {
+            jb.CPU.Call(jb.Read16Bit())
+        }
+    case 0xCC:
+        if jb.CPU.IsFlagSet(ZeroFlag) {
+            jb.CPU.Call(jb.Read16Bit())
+        }
+    case 0xDC:
+        if jb.CPU.IsFlagSet(CarryFlag) {
+            jb.CPU.Call(jb.Read16Bit())
+        }
+    case 0xCD:
+        jb.CPU.Call(jb.Read16Bit())
+    default:
+        panic(fmt.Sprintf("not implemented CALL: %x", opcode))
+    }
+
+    return nil
 }
 
 func CCF(jb *Jamboy, opcode OpCode) (err error) {
@@ -72,61 +109,11 @@ func INCA(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func IncrementRegister(jb *Jamboy, dstRegister RegisterID) {
-    srcValue := jb.CPU.ReadRegister(dstRegister)
-    finalValue := uint(srcValue)
-
-    jb.CPU.SetFlags(Flag(jb.CPU.Registers[F] & 0x10))
-
-    if dstRegister == HL {
-        hl := srcValue
-        srcValue = uint(jb.MMU.Read(Address(hl)))
-        finalValue = srcValue + 1
-        jb.MMU.Write(Address(hl), byte(finalValue))
-    } else {
-        finalValue = srcValue + 1
-        jb.CPU.WriteRegister(dstRegister, finalValue)
-    }
-
-    if finalValue >= 0x100 {
-        jb.CPU.AddFlags(ZeroFlag)
-    }
-
-    if srcValue < 0x10 && finalValue >= 0x10 {
-        jb.CPU.AddFlags(HalfCarryFlag)
-    }
-
-    if finalValue > 0xFF {
-        jb.CPU.AddFlags(CarryFlag)
-    }
+    jb.CPU.Add(dstRegister, 1, false)
 }
 
 func DecrementRegister(jb *Jamboy, dstRegister RegisterID) {
-    srcValue := int(jb.CPU.ReadRegister(dstRegister))
-    finalValue := int(srcValue)
-
-    jb.CPU.SetFlags(Flag(jb.CPU.Registers[F] & 0x10) | SubFlag)
-
-    if dstRegister == HL {
-        hl := srcValue
-        srcValue = int(jb.MMU.Read(Address(hl)))
-        finalValue = srcValue - 1
-        jb.MMU.Write(Address(hl), byte(finalValue))
-    } else {
-        finalValue = srcValue - 1
-        jb.CPU.WriteRegister(dstRegister, uint(finalValue))
-    }
-
-    if finalValue == 0 {
-        jb.CPU.AddFlags(ZeroFlag)
-    }
-
-    if srcValue >= 0x10 && finalValue < 0x10 {
-        jb.CPU.AddFlags(HalfCarryFlag)
-    }
-
-    if finalValue < 0 {
-        jb.CPU.AddFlags(CarryFlag)
-    }
+    jb.CPU.Subtract(dstRegister, 1, false)
 }
 
 func INCB(jb *Jamboy, opcode OpCode) (err error) {
@@ -165,15 +152,27 @@ func JR(jb *Jamboy, opcode OpCode) (err error) {
     offset := jb.Read8Bit()
 
     switch opcode {
+    case 0x18:
+        jb.CPU.Jump(uint16(int(jb.CPU.ReadRegister(PC)) + int(int8(offset))))
     case 0x20:
-        if jb.CPU.GetFlags()&ZeroFlag > 0 {
-            return
+        if !jb.CPU.IsFlagSet(ZeroFlag) {
+            jb.CPU.Jump(uint16(int(jb.CPU.ReadRegister(PC)) + int(int8(offset))))
+        }
+    case 0x30:
+        if !jb.CPU.IsFlagSet(CarryFlag) {
+            jb.CPU.Jump(uint16(int(jb.CPU.ReadRegister(PC)) + int(int8(offset))))
+        }
+    case 0x28:
+        if jb.CPU.IsFlagSet(ZeroFlag) {
+            jb.CPU.Jump(uint16(int(jb.CPU.ReadRegister(PC)) + int(int8(offset))))
+        }
+    case 0x38:
+        if jb.CPU.IsFlagSet(CarryFlag) {
+            jb.CPU.Jump(uint16(int(jb.CPU.ReadRegister(PC)) + int(int8(offset))))
         }
     default:
         panic(fmt.Sprintf("not implemented JR %02x", opcode))
     }
-
-    jb.CPU.WriteRegister(PC, uint(int(jb.CPU.ReadRegister(PC))+int(int8(offset))))
 
     return err
 }
@@ -255,17 +254,13 @@ func LDd16(jb *Jamboy, opcode OpCode) (err error) {
     return err
 }
 
-var ldOrderedRegisters = []RegisterID{
-    B, C, D, E, H, L, RegisterID(255), A,
-}
-
 func LD(jb *Jamboy, opcode OpCode) (err error) {
     // 8 bit LDs
     if opcode >= 0x40 && opcode < 0x80 {
         opOffset := opcode - 0x40
         opSeq := opOffset % 8
-        dstRegister := ldOrderedRegisters[opOffset/8]
-        srcRegister := ldOrderedRegisters[opSeq]
+        dstRegister := fullOrderedRegisters[opOffset/8]
+        srcRegister := fullOrderedRegisters[opSeq]
 
         if dstRegister == 255 {
             // (HL) = r
@@ -284,8 +279,33 @@ func LD(jb *Jamboy, opcode OpCode) (err error) {
     return err
 }
 
+func LDAToRAMPointer(jb *Jamboy, opcode OpCode) (err error) {
+    pointer := jb.Read16Bit()
+
+    jb.MMU.Write(Address(pointer), byte(jb.CPU.ReadRegister(A)))
+
+    return nil
+}
+
+func LDRAMPointerToA(jb *Jamboy, opcode OpCode) (err error) {
+    pointer := jb.Read16Bit()
+
+    jb.CPU.WriteRegister(A, uint(jb.MMU.Read(Address(pointer))))
+
+    return nil
+}
+
 func LDH(jb *Jamboy, opcode OpCode) (err error) {
-    panic(fmt.Sprintf("not implemented op LDH -  %x", opcode))
+    offset := jb.Read8Bit()
+
+    switch opcode & 0xF0 {
+    case 0xE0:
+        jb.MMU.Write(Address(0xFF00+uint(offset)), byte(jb.CPU.ReadRegister(A)))
+    case 0xF0:
+        jb.CPU.WriteRegister(A, uint(jb.MMU.Read(Address(0xFF00+uint(offset)))))
+    }
+
+    return nil
 }
 
 func NOP(jb *Jamboy, opcode OpCode) (err error) {
@@ -296,8 +316,17 @@ func OR(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op OR -  %x", opcode))
 }
 
+var pushPopOrderedRegisters = []RegisterID{
+    BC, DE, HL, AF,
+}
+
 func POP(jb *Jamboy, opcode OpCode) (err error) {
-    panic(fmt.Sprintf("not implemented op POP -  %x", opcode))
+    register := pushPopOrderedRegisters[(opcode&0xF0>>4)-0x0C]
+
+    value := jb.CPU.PopUint16()
+    jb.CPU.WriteRegister(register, uint(value))
+
+    return nil
 }
 
 func PREFIX(jb *Jamboy, opcode OpCode) (err error) {
@@ -305,11 +334,18 @@ func PREFIX(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func PUSH(jb *Jamboy, opcode OpCode) (err error) {
-    panic(fmt.Sprintf("not implemented op PUSH -  %x", opcode))
+    register := pushPopOrderedRegisters[(opcode&0xF0>>4)-0x0C]
+
+    value := jb.CPU.ReadRegister(register)
+    jb.CPU.PushUint16(uint16(value))
+
+    return nil
 }
 
 func RET(jb *Jamboy, opcode OpCode) (err error) {
-    panic(fmt.Sprintf("not implemented op RET -  %x", opcode))
+    jb.CPU.Return()
+
+    return nil
 }
 
 func RETI(jb *Jamboy, opcode OpCode) (err error) {
@@ -337,11 +373,17 @@ func RST(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func SBC(jb *Jamboy, opcode OpCode) (err error) {
-    panic(fmt.Sprintf("not implemented op SBC -  %x", opcode))
+    register := fullOrderedRegisters[opcode&0x0F]
+
+    jb.CPU.SubtractR8(A, register, true)
+
+    return nil
 }
 
 func SCF(jb *Jamboy, opcode OpCode) (err error) {
-    panic(fmt.Sprintf("not implemented op SCF -  %x", opcode))
+    jb.CPU.SetFlags(CarryFlag | (jb.CPU.GetFlags() & 0x80))
+
+    return nil
 }
 
 func STOP(jb *Jamboy, opcode OpCode) (err error) {
@@ -349,7 +391,11 @@ func STOP(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func SUB(jb *Jamboy, opcode OpCode) (err error) {
-    panic(fmt.Sprintf("not implemented op SUB -  %x", opcode))
+    register := fullOrderedRegisters[opcode&0x0F]
+
+    jb.CPU.SubtractR8(A, register, false)
+
+    return nil
 }
 
 func XOR(jb *Jamboy, opcode OpCode) (err error) {
