@@ -232,15 +232,7 @@ func (c *CPU) Return() {
 }
 
 func (c *CPU) AddR8(a RegisterID, b RegisterID, withCarry bool) {
-	bValue := uint8(0)
-
-	if b == HL {
-		bValue = c.Jamboy.MMU.Read(Address(c.ReadRegisterInstant(b)))
-	} else {
-		bValue = uint8(c.ReadRegister(b))
-	}
-
-	c.Add(a, bValue, withCarry)
+	c.Add(a, c.getRegisterValue(b), withCarry)
 }
 
 func (c *CPU) Add(a RegisterID, b uint8, withCarry bool) {
@@ -277,15 +269,17 @@ func (c *CPU) Add(a RegisterID, b uint8, withCarry bool) {
 }
 
 func (c *CPU) SubtractR8(a RegisterID, b RegisterID, withCarry bool) {
-	bValue := uint8(0)
+	c.Subtract(a, c.getRegisterValue(b), withCarry)
+}
 
-	if b == HL {
-		bValue = c.Jamboy.MMU.Read(Address(c.ReadRegisterInstant(b)))
+func (c *CPU) getRegisterValue(register RegisterID) (value uint8) {
+	if register == HL {
+		value = c.Jamboy.MMU.Read(Address(c.ReadRegisterInstant(register)))
 	} else {
-		bValue = uint8(c.ReadRegister(b))
+		value = uint8(c.ReadRegister(register))
 	}
 
-	c.Subtract(a, bValue, withCarry)
+	return
 }
 
 func (c *CPU) Subtract(a RegisterID, b uint8, withCarry bool) {
@@ -318,6 +312,74 @@ func (c *CPU) Subtract(a RegisterID, b uint8, withCarry bool) {
 
 	if finalValue < 0 {
 		c.AddFlags(CarryFlag)
+	}
+}
+
+func (c *CPU) AndR8(register RegisterID) {
+	c.And(c.getRegisterValue(register))
+}
+
+func (c *CPU) And(value uint8) {
+	c.SetFlags(0x00)
+
+	finalValue := value & c.Registers[A]
+
+	if finalValue == 0 {
+		c.AddFlags(ZeroFlag)
+	}
+
+	c.Registers[A] = finalValue
+}
+
+func (c *CPU) OrR8(register RegisterID) {
+	c.Or(c.getRegisterValue(register))
+}
+
+func (c *CPU) Or(value uint8) {
+	c.SetFlags(0x00)
+
+	finalValue := value | c.Registers[A]
+
+	if finalValue == 0 {
+		c.AddFlags(ZeroFlag)
+	}
+
+	c.Registers[A] = finalValue
+}
+
+func (c *CPU) XorR8(register RegisterID) {
+	c.Or(c.getRegisterValue(register))
+}
+
+func (c *CPU) Xor(value uint8) {
+	c.SetFlags(0x00)
+
+	finalValue := value ^ c.Registers[A]
+
+	if finalValue == 0 {
+		c.AddFlags(ZeroFlag)
+	}
+
+	c.Registers[A] = finalValue
+}
+
+func (c *CPU) CompareR8(register RegisterID) {
+	c.Compare(c.getRegisterValue(register))
+}
+
+func (c *CPU) Compare(value uint8) {
+	c.SetFlags(0x00)
+
+	if c.Registers[A] >= 0x10 && value > 0 {
+		c.AddFlags(HalfCarryFlag)
+	}
+
+	if value > c.Registers[A] {
+		c.AddFlags(CarryFlag)
+	}
+
+	if value == c.Registers[A] {
+		c.AddFlags(ZeroFlag)
 	}
 }
 
