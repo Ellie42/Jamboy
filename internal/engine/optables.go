@@ -2,7 +2,7 @@ package engine
 
 type OpCode uint8
 
-var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (finished bool, err error){
+var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	NOP,      // 0x00
 	LDd16,    // 0x01
 	LDAToRAM, // 0x02

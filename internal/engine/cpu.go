@@ -10,7 +10,7 @@ type CPU struct {
 	Registers []uint8
 
 	memory           *MMU
-	CurrentJumpTable *[]func(jb *Jamboy, opcode OpCode) (finished bool, err error)
+	CurrentJumpTable *[]func(jb *Jamboy, opcode OpCode) (err error)
 	CurrentOP        OpCode
 	Jamboy           *Jamboy
 }

@@ -4,51 +4,55 @@ import (
     "fmt"
 )
 
-func ADC(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func ADC(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op ADC -  %x", opcode))
 }
 
-func ADD(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func ADD(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op ADD -  %x", opcode))
 }
 
-func AND(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func AND(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op AND -  %x", opcode))
 }
 
-func CALL(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func CALL(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op CALL -  %x", opcode))
 }
 
-func CCF(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func CCF(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op CCF -  %x", opcode))
 }
 
-func CP(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func CP(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op CP -  %x", opcode))
 }
 
-func CPL(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func CPL(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op CPL -  %x", opcode))
 }
 
-func DAA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func DAA(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op DAA -  %x", opcode))
 }
 
-func DEC(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func DEC(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op DEC -  %x", opcode))
 }
 
-func DI(jb *Jamboy, opcode OpCode) (finished bool, err error) {
-    panic(fmt.Sprintf("not implemented op DI -  %x", opcode))
+func DI(jb *Jamboy, opcode OpCode) (err error) {
+    jb.MMU.Write(0xFFFF, 0)
+
+    return nil
 }
 
-func EI(jb *Jamboy, opcode OpCode) (finished bool, err error) {
-    panic(fmt.Sprintf("not implemented op EI -  %x", opcode))
+func EI(jb *Jamboy, opcode OpCode) (err error) {
+    jb.MMU.Write(0xFFFF, 1)
+
+    return nil
 }
 
-func HALT(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func HALT(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op HALT -  %x", opcode))
 }
 
@@ -60,11 +64,11 @@ var incdecBOrderedRegisters = []RegisterID{
     C, E, L, A,
 }
 
-func INCA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func INCA(jb *Jamboy, opcode OpCode) (err error) {
     dstRegister := incdecAOrderedRegisters[(opcode&0xF0)>>4]
     IncrementRegister(jb, dstRegister)
 
-    return true, nil
+    return nil
 }
 
 func IncrementRegister(jb *Jamboy, dstRegister RegisterID) {
@@ -125,40 +129,39 @@ func DecrementRegister(jb *Jamboy, dstRegister RegisterID) {
     }
 }
 
-func INCB(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func INCB(jb *Jamboy, opcode OpCode) (err error) {
     dstRegister := incdecBOrderedRegisters[(opcode&0xF0)>>4]
 
     IncrementRegister(jb, dstRegister)
 
-    return true, nil
+    return nil
 }
 
-func DECA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func DECA(jb *Jamboy, opcode OpCode) (err error) {
     dstRegister := incdecAOrderedRegisters[(opcode&0xF0)>>4]
 
     DecrementRegister(jb, dstRegister)
 
-    return true, nil
+    return nil
 }
 
-func DECB(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func DECB(jb *Jamboy, opcode OpCode) (err error) {
     dstRegister := incdecBOrderedRegisters[(opcode&0xF0)>>4]
 
     DecrementRegister(jb, dstRegister)
 
-    return true, nil
+    return nil
 }
 
-func JP(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func JP(jb *Jamboy, opcode OpCode) (err error) {
     address := jb.Read16Bit()
 
     jb.CPU.WriteRegister(PC, uint(address))
 
-
-    return true, nil
+    return nil
 }
 
-func JR(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func JR(jb *Jamboy, opcode OpCode) (err error) {
     offset := jb.Read8Bit()
 
     switch opcode {
@@ -172,10 +175,10 @@ func JR(jb *Jamboy, opcode OpCode) (finished bool, err error) {
 
     jb.CPU.WriteRegister(PC, uint(int(jb.CPU.ReadRegister(PC))+int(int8(offset))))
 
-    return true, err
+    return err
 }
 
-func LDRAMToA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func LDRAMToA(jb *Jamboy, opcode OpCode) (err error) {
     data := byte(0)
 
     switch opcode & 0xF0 {
@@ -193,10 +196,10 @@ func LDRAMToA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
 
     jb.CPU.WriteRegister(A, uint(data))
 
-    return true, err
+    return err
 }
 
-func LDAToRAM(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func LDAToRAM(jb *Jamboy, opcode OpCode) (err error) {
     data := jb.CPU.Registers[A]
 
     switch opcode & 0xF0 {
@@ -216,22 +219,22 @@ func LDAToRAM(jb *Jamboy, opcode OpCode) (finished bool, err error) {
         jb.MMU.Write(Address(register), data)
     }
 
-    return true, err
+    return err
 }
 
 var ld8OrderedRegisters = []RegisterID{
     C, E, L, A,
 }
 
-func LDd8(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func LDd8(jb *Jamboy, opcode OpCode) (err error) {
     dstRegister := ld8OrderedRegisters[opcode&0xF0>>4]
 
     jb.CPU.WriteRegister(dstRegister, uint(jb.Read8Bit()))
 
-    return true, err
+    return err
 }
 
-func LDd16(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func LDd16(jb *Jamboy, opcode OpCode) (err error) {
     register := RegisterID(0)
 
     switch opcode {
@@ -249,14 +252,14 @@ func LDd16(jb *Jamboy, opcode OpCode) (finished bool, err error) {
 
     jb.CPU.WriteRegister(register, uint(jb.Read16Bit()))
 
-    return true, err
+    return err
 }
 
 var ldOrderedRegisters = []RegisterID{
     B, C, D, E, H, L, RegisterID(255), A,
 }
 
-func LD(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func LD(jb *Jamboy, opcode OpCode) (err error) {
     // 8 bit LDs
     if opcode >= 0x40 && opcode < 0x80 {
         opOffset := opcode - 0x40
@@ -278,77 +281,77 @@ func LD(jb *Jamboy, opcode OpCode) (finished bool, err error) {
         panic(fmt.Sprintf("not implemented LD %x", opcode))
     }
 
-    return true, err
+    return err
 }
 
-func LDH(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func LDH(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op LDH -  %x", opcode))
 }
 
-func NOP(jb *Jamboy, opcode OpCode) (finished bool, err error) {
-    return true, nil
+func NOP(jb *Jamboy, opcode OpCode) (err error) {
+    return nil
 }
 
-func OR(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func OR(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op OR -  %x", opcode))
 }
 
-func POP(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func POP(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op POP -  %x", opcode))
 }
 
-func PREFIX(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func PREFIX(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op PREFIX -  %x", opcode))
 }
 
-func PUSH(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func PUSH(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op PUSH -  %x", opcode))
 }
 
-func RET(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func RET(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op RET -  %x", opcode))
 }
 
-func RETI(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func RETI(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op RETI -  %x", opcode))
 }
 
-func RLA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func RLA(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op RLA -  %x", opcode))
 }
 
-func RLCA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func RLCA(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op RLCA -  %x", opcode))
 }
 
-func RRA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func RRA(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op RRA -  %x", opcode))
 }
 
-func RRCA(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func RRCA(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op RRCA -  %x", opcode))
 }
 
-func RST(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func RST(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op RST -  %x", opcode))
 }
 
-func SBC(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func SBC(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op SBC -  %x", opcode))
 }
 
-func SCF(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func SCF(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op SCF -  %x", opcode))
 }
 
-func STOP(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func STOP(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op STOP -  %x", opcode))
 }
 
-func SUB(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func SUB(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op SUB -  %x", opcode))
 }
 
-func XOR(jb *Jamboy, opcode OpCode) (finished bool, err error) {
+func XOR(jb *Jamboy, opcode OpCode) (err error) {
     panic(fmt.Sprintf("not implemented op XOR -  %x", opcode))
 }

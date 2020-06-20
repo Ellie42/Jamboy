@@ -35,7 +35,7 @@ func (j *Jamboy) Tick() error {
 
 	//fmt.Printf("%s 0x%04x PC:0x%04x %v\n", GetFunctionName((*j.CPU.CurrentJumpTable)[op]), op, j.CPU.PC-1, j.CPU.Registers)
 
-	_, err := (*j.CPU.CurrentJumpTable)[op](j, op)
+	err := (*j.CPU.CurrentJumpTable)[op](j, op)
 
 	fmt.Printf(`%s
 AF %02x%02x BC %02x%02x
