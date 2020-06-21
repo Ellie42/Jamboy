@@ -14,10 +14,10 @@ var (
 		From: Address(0x3FFF),
 		To:   Address(0x7FFF),
 	}
-	InterruptMasterEnable = MemoryRange{
-		From: Address(0xFFFF),
-		To:   Address(0xFFFF),
-	}
+)
+
+const (
+	AddrLY Address = 0xFF44
 )
 
 type Address uint16

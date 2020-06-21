@@ -132,7 +132,7 @@ func DECB(jb *Jamboy, opcode OpCode) (err error) {
 func JP(jb *Jamboy, opcode OpCode) (err error) {
     address := jb.Read16Bit()
 
-    jb.CPU.WriteRegister(PC, uint(address))
+    jb.CPU.Jump(uint16(address))
 
     return nil
 }
