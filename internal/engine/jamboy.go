@@ -8,11 +8,13 @@ import (
 )
 
 type Jamboy struct {
-	CPU         *CPU
-	Cart        *Cart
-	MMU         *MMU
+	CPU  *CPU
+	GPU  *GPU
+	Cart *Cart
+	MMU  *MMU
 
 	OutputDebug bool
+	IsHalted    bool
 }
 
 func (j *Jamboy) InsertCartridge(cart *Cart) {
@@ -27,18 +29,29 @@ func (j *Jamboy) PowerOn() {
 }
 
 func (j *Jamboy) Tick() error {
+	if j.IsHalted {
+		return nil
+	}
+
+	//if j.CPU.PC == 0x0236 {
+	//	fmt.Println("here")
+	//}
+
 	op := j.CPU.CurrentOP
+
+	if j.OutputDebug {
+		fmt.Printf("%s: %x", GetFunctionName((*j.CPU.CurrentJumpTable)[op]), op)
+	}
 
 	err := (*j.CPU.CurrentJumpTable)[op](j, op)
 
 	if j.OutputDebug {
-		fmt.Printf(`%s
+		fmt.Printf(`
 AF %02x%02x BC %02x%02x
 DE %02x%02x HL %02x%02x
 SP %04x PC %04x
 -------------------
 `,
-			GetFunctionName((*j.CPU.CurrentJumpTable)[op]),
 			j.CPU.Registers[A], j.CPU.Registers[F],
 			j.CPU.Registers[B], j.CPU.Registers[C],
 			j.CPU.Registers[D], j.CPU.Registers[E],
@@ -47,14 +60,11 @@ SP %04x PC %04x
 		)
 	}
 
-	//c220
-	if j.CPU.PC == 0x0213 {
-		fmt.Println("here")
-	}
-
 	if err != nil {
 		return err
 	}
+
+	j.GPU.Tick()
 
 	j.CPU.CurrentOP = j.NextOpInstant()
 
@@ -83,17 +93,31 @@ func (j *Jamboy) Read16Bit() uint16 {
 	pcl := j.NextOp()
 	pch := j.NextOp()
 
-	//internal.Logger.Info("read 16bit", zap.String("value", fmt.Sprintf("0x%x", (uint16(pch)<<8)|uint16(pcl))))
+	val := (uint16(pch) << 8) | uint16(pcl)
 
-	return (uint16(pch) << 8) | uint16(pcl)
+	if j.OutputDebug {
+		fmt.Printf(" %x(d16)", val)
+	}
+
+	return val
 }
 
 func (j *Jamboy) Read8Bit() uint8 {
 	num := uint8(j.NextOp())
 
-	//internal.Logger.Info("read 8bit", zap.Uint8("value", num))
+	if j.OutputDebug {
+		fmt.Printf(" %x(d8)", num)
+	}
 
 	return num
+}
+
+func (j *Jamboy) Halt() {
+	j.IsHalted = true
+}
+
+func (j *Jamboy) Resume() {
+	j.IsHalted = false
 }
 
 func NewJamboy() *Jamboy {
@@ -101,6 +125,7 @@ func NewJamboy() *Jamboy {
 
 	jb.MMU = newMMU(jb)
 	jb.CPU = NewCPU(jb)
+	jb.GPU = NewGPU(jb)
 
 	return jb
 }

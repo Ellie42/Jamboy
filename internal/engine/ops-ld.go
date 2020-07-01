@@ -23,9 +23,9 @@ func LDH(jb *Jamboy, opcode OpCode) (err error) {
 
 	switch opcode & 0xF0 {
 	case 0xE0:
-		jb.MMU.Write(Address(0xFF00+int(offset)), byte(jb.CPU.ReadRegister(A)))
+		jb.MMU.Write(Address(0xFF00+uint(offset)), byte(jb.CPU.ReadRegister(A)))
 	case 0xF0:
-		jb.CPU.WriteRegister(A, uint(jb.MMU.Read(Address(0xFF00+int(offset)))))
+		jb.CPU.WriteRegister(A, uint(jb.MMU.Read(Address(0xFF00+uint(offset)))))
 	}
 
 	return nil
@@ -56,13 +56,28 @@ func LD(jb *Jamboy, opcode OpCode) (err error) {
 	return err
 }
 
+var ld8AOrderedRegistersA = []RegisterID{
+	B, D, H, HL,
+}
 
-var ld8OrderedRegisters = []RegisterID{
+func LDd8A(jb *Jamboy, opcode OpCode) (err error) {
+	dstRegister := ld8AOrderedRegistersA[opcode&0xF0>>4]
+
+	if dstRegister == HL {
+		jb.MMU.Write(Address(jb.CPU.ReadRegister(HL)), jb.Read8Bit())
+	} else {
+		jb.CPU.WriteRegister(dstRegister, uint(jb.Read8Bit()))
+	}
+
+	return err
+}
+
+var ld8OrderedRegistersB = []RegisterID{
 	C, E, L, A,
 }
 
-func LDd8(jb *Jamboy, opcode OpCode) (err error) {
-	dstRegister := ld8OrderedRegisters[opcode&0xF0>>4]
+func LDd8B(jb *Jamboy, opcode OpCode) (err error) {
+	dstRegister := ld8OrderedRegistersB[opcode&0xF0>>4]
 
 	jb.CPU.WriteRegister(dstRegister, uint(jb.Read8Bit()))
 

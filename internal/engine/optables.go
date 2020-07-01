@@ -9,7 +9,7 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	INCB,            // 0x03
 	INCA,            // 0x04
 	DECA,            // 0x05
-	LD,              // 0x06
+	LDd8A,           // 0x06
 	RLCA,            // 0x07
 	LD,              // 0x08
 	ADD,             // 0x09
@@ -17,7 +17,7 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	DEC,             // 0x0B
 	INCB,            // 0x0C
 	DECB,            // 0x0D
-	LDd8,            // 0x0E
+	LDd8B,           // 0x0E
 	RRCA,            // 0x0F
 	STOP,            // 0x10
 	LDd16,           // 0x11
@@ -25,7 +25,7 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	INCB,            // 0x13
 	INCA,            // 0x14
 	DECA,            // 0x15
-	LD,              // 0x16
+	LDd8A,           // 0x16
 	RLA,             // 0x17
 	JR,              // 0x18
 	ADD,             // 0x19
@@ -33,7 +33,7 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	DEC,             // 0x1B
 	INCB,            // 0x1C
 	DECB,            // 0x1D
-	LDd8,            // 0x1E
+	LDd8B,           // 0x1E
 	RRA,             // 0x1F
 	JR,              // 0x20
 	LDd16,           // 0x21
@@ -41,7 +41,7 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	INCB,            // 0x23
 	INCA,            // 0x24
 	DECA,            // 0x25
-	LD,              // 0x26
+	LDd8A,           // 0x26
 	DAA,             // 0x27
 	JR,              // 0x28
 	ADD,             // 0x29
@@ -49,7 +49,7 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	DEC,             // 0x2B
 	INCB,            // 0x2C
 	DECB,            // 0x2D
-	LDd8,            // 0x2E
+	LDd8B,           // 0x2E
 	CPL,             // 0x2F
 	JR,              // 0x30
 	LDd16,           // 0x31
@@ -57,7 +57,7 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	INCB,            // 0x33
 	INCA,            // 0x34
 	DECA,            // 0x35
-	LD,              // 0x36
+	LDd8A,           // 0x36
 	SCF,             // 0x37
 	JR,              // 0x38
 	ADD,             // 0x39
@@ -65,7 +65,7 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	DEC,             // 0x3B
 	INCB,            // 0x3C
 	DECB,            // 0x3D
-	LDd8,            // 0x3E
+	LDd8B,           // 0x3E
 	CCF,             // 0x3F
 	LD,              // 0x40
 	LD,              // 0x41

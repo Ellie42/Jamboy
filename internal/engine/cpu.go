@@ -12,6 +12,7 @@ type CPU struct {
 	CurrentJumpTable *[]func(jb *Jamboy, opcode OpCode) (err error)
 	CurrentOP        OpCode
 	Jamboy           *Jamboy
+	Cycles           uint
 }
 
 //go:generate stringer -type=Register -linecomment
@@ -82,20 +83,20 @@ func (c *CPU) WriteRegisterInstant(register RegisterID, value uint) {
 	case HL:
 		c.Registers[L] = byte(value & 0x00FF)
 		c.Registers[H] = byte((value & 0xFF00) >> 8)
-	case A:
-		c.Registers[register] = byte(value)
-	case B:
-		c.Registers[register] = byte(value)
-	case C:
-		c.Registers[register] = byte(value)
-	case D:
-		c.Registers[register] = byte(value)
-	case E:
-		c.Registers[register] = byte(value)
 	case F:
 		c.Registers[register] = byte(value & 0xF0)
+	case A:
+		fallthrough
+	case B:
+		fallthrough
+	case C:
+		fallthrough
+	case D:
+		fallthrough
+	case E:
+		fallthrough
 	case H:
-		c.Registers[register] = byte(value)
+		fallthrough
 	case L:
 		c.Registers[register] = byte(value)
 	case SP:
@@ -165,8 +166,9 @@ func (c *CPU) Reset() {
 	c.PC = 0x0100
 }
 
-func (c CPU) Wait(i int) {
-
+func (c CPU) Wait(i uint) {
+	c.Cycles += i * 4
+	c.Jamboy.GPU.Clocks += i
 }
 
 func (c *CPU) IncrementHL() {
