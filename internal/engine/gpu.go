@@ -28,7 +28,14 @@ var clockCounts = map[GPUState]uint{
 	HBlank:  201,
 	OAM:     77,
 	OAMVRAM: 169,
-	VBlank:  4560,
+	VBlank:  456,
+}
+
+var stateFlags = []byte{
+	0,
+	2,
+	3,
+	1,
 }
 
 func (g *GPU) Tick() {
@@ -37,8 +44,12 @@ func (g *GPU) Tick() {
 
 	for g.currentStateClocks < 0 {
 		if g.currentState == VBlank {
-			g.currentState = OAM
-			g.currentRow = 0
+			if g.currentRow < 153 {
+				g.currentRow++
+			} else {
+				g.currentState = OAM
+				g.currentRow = 0
+			}
 		} else {
 			g.currentState = GPUState((uint(g.currentState) + 1) % 3)
 		}
@@ -53,6 +64,8 @@ func (g *GPU) Tick() {
 
 			g.currentRow++
 		}
+
+		g.jb.MMU.RAM[0xFF41] = (g.jb.MMU.RAM[0xFF41] & 0xFC) | stateFlags[g.currentState]
 
 		g.currentStateClocks += int(clockCounts[g.currentState])
 	}
