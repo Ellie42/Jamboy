@@ -10,7 +10,8 @@ import (
 var cpu *engine.CPU
 
 func TestMain(m *testing.M) {
-	cpu = engine.NewCPU(&engine.MMU{})
+	jb := engine.NewJamboy()
+	cpu = jb.CPU
 
 	os.Exit(m.Run())
 }
@@ -33,8 +34,12 @@ func TestRegisters_SetMultiRegister(t *testing.T) {
 			jh := uint8((j & 0xFF00) >> 8)
 			jl := uint8(j & 0xFF)
 
-			assert.Equal(t, jl, *r.a)
-			assert.Equal(t, jh, *r.b)
+			if r.multiRegister == engine.AF {
+				jl = uint8(jl & 0xF0)
+			}
+
+			assert.Equal(t, jh, *r.a)
+			assert.Equal(t, jl, *r.b)
 		}
 	}
 }
@@ -52,8 +57,12 @@ func TestRegisters_GetMultiRegister(t *testing.T) {
 
 	for _, r := range registers {
 		for j := 0; j < len(values); j += 2 {
-			jl := values[j]
-			jh := values[j+1]
+			jh := values[j]
+			jl := values[j+1]
+
+			if r.multiRegister == engine.AF {
+				jl = uint8(jl & 0xF0)
+			}
 
 			*r.a = jl
 			*r.b = jh

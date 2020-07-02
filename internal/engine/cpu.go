@@ -1,6 +1,11 @@
 package engine
 
-import "fmt"
+import (
+	"encoding/hex"
+	"fmt"
+)
+
+const dmgBoot = "31feffaf21ff9f32cb7c20fb2126ff0e113e8032e20c3ef3e2323e77773efce0471104012110801acd9500cd9600137bfe3420f311d80006081a1322230520f93e19ea1099212f990e0c3d2808320d20f92e0f18f3673e6457e0423e91e040041e020e0cf044fe9020fa0d20f71d20f20e13247c1e83fe6228061ec1fe6420067be20c3e87e2f04290e0421520d205204f162018cb4f0604c5cb1117c1cb11170520f522232223c9ceed6666cc0d000b03730083000c000d0008111f8889000edccc6ee6ddddd999bbbb67636e0eecccdddc999fbbb9333e3c42b9a5b9a5423c21040111a8001a13be20fe237dfe3420f506197886230520fb8620fe3e01e050"
 
 // REMEMBER LITTLE ENDIAN
 type CPU struct {
@@ -13,6 +18,7 @@ type CPU struct {
 	CurrentOP        OpCode
 	Jamboy           *Jamboy
 	Cycles           uint
+	IsBooting        bool
 }
 
 //go:generate stringer -type=Register -linecomment
@@ -163,7 +169,16 @@ func (c *CPU) Reset() {
 	c.WriteRegister(DE, 0x00D8)
 	c.WriteRegister(HL, 0x014D)
 	c.SP = 0xFFFE
-	c.PC = 0x0100
+	c.PC = 0x0000
+	c.IsBooting = true
+
+	bootRom, err := hex.DecodeString(dmgBoot)
+
+	if err != nil {
+		panic(err)
+	}
+
+	copy(c.Jamboy.MMU.RAM[0:256], bootRom)
 }
 
 func (c CPU) Wait(i uint) {
@@ -185,6 +200,10 @@ func (c *CPU) AddFlags(flags Flag) {
 
 func (c *CPU) SetFlags(flags Flag) {
 	c.WriteRegisterInstant(F, uint(flags))
+}
+
+func (c *CPU) SetFlagsMasked(flags Flag, mask Flag) {
+	c.WriteRegisterInstant(F, uint((c.GetFlags() & ^mask)|flags))
 }
 
 func (c *CPU) GetFlags() Flag {

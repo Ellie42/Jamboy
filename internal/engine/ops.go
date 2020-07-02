@@ -186,7 +186,9 @@ func POP(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func PREFIX(jb *Jamboy, opcode OpCode) (err error) {
-	panic(fmt.Sprintf("not implemented op PREFIX -  %x", opcode))
+	jb.CPU.CurrentJumpTable = &ExtraOpJumpTable
+
+	return nil
 }
 
 func PUSH(jb *Jamboy, opcode OpCode) (err error) {

@@ -36,9 +36,8 @@ func TestLDd16(t *testing.T) {
 
 		cart.Data = []byte{0xFF, 0x01}
 
-		finished, err := engine.LDd16(jb, test.op)
+		err := engine.LDd16(jb, test.op)
 
-		assert.True(t, finished)
 		assert.Nil(t, err)
 
 		expected := binary.LittleEndian.Uint16(cart.Data)
@@ -98,9 +97,8 @@ func TestLD(t *testing.T) {
 				jb.CPU.WriteRegister(engine.HL, 0xCCAA)
 				jb.CPU.Registers[test.r] = 0xCC
 
-				finished, err := engine.LD(jb, engine.OpCode(baseOp+test.op))
+				err := engine.LD(jb, engine.OpCode(baseOp+test.op))
 
-				assert.True(t, finished)
 				assert.Nil(t, err)
 
 				assert.Equal(
@@ -113,9 +111,8 @@ func TestLD(t *testing.T) {
 
 				jb.CPU.Registers[test.r] = 0xC0
 
-				finished, err := engine.LD(jb, engine.OpCode(baseOp+test.op))
+				err := engine.LD(jb, engine.OpCode(baseOp+test.op))
 
-				assert.True(t, finished)
 				assert.Nil(t, err)
 
 				assert.Equal(
@@ -128,9 +125,8 @@ func TestLD(t *testing.T) {
 			jb.CPU.WriteRegister(engine.HL, 0x01)
 			jb.MMU.Write(0x01, 0xC0)
 
-			finished, err := engine.LD(jb, engine.OpCode(baseOp+0x06))
+			err := engine.LD(jb, engine.OpCode(baseOp+0x06))
 
-			assert.True(t, finished)
 			assert.Nil(t, err)
 
 			assert.Equal(

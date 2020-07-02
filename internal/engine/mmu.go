@@ -94,8 +94,10 @@ func (m *MMU) Read(addr Address) byte {
 }
 
 func (m *MMU) ReadInstant(addr Address) byte {
-	if addr.InRange(CartROM0) || addr.InRange(CartROMN) {
-		return m.Jamboy.Cart.Data[addr]
+	if (addr.InRange(CartROM0) || addr.InRange(CartROMN)) && int(addr) < len(m.Jamboy.Cart.Data) {
+		if !m.Jamboy.CPU.IsBooting {
+			return m.Jamboy.Cart.Data[addr]
+		}
 	}
 
 	return m.RAM[addr]

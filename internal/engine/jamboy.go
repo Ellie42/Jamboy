@@ -39,11 +39,15 @@ func (j *Jamboy) Tick() error {
 
 	op := j.CPU.CurrentOP
 
+	opFunc := (*j.CPU.CurrentJumpTable)[op]
+
 	if j.OutputDebug {
-		fmt.Printf("%s: %x", GetFunctionName((*j.CPU.CurrentJumpTable)[op]), op)
+		fmt.Printf("%s: %x", GetFunctionName(opFunc), op)
 	}
 
-	err := (*j.CPU.CurrentJumpTable)[op](j, op)
+	j.CPU.CurrentJumpTable = &BaseOpJumpTable
+
+	err := opFunc(j, op)
 
 	if j.OutputDebug {
 		fmt.Printf(`
