@@ -14,6 +14,16 @@ func getRegisterValueFromOpcode(jb *Jamboy, opcode OpCode) byte {
 	return byte(jb.CPU.ReadRegister(register))
 }
 
+func writeRegisterValueFromOpcode(jb *Jamboy, opcode OpCode, value byte) {
+	register := orderedExtraOps[opcode&0x0F]
+
+	if register == HL {
+		jb.MMU.Write(Address(jb.CPU.ReadRegisterInstant(register)), value)
+	}
+
+	jb.CPU.WriteRegister(register, uint(value))
+}
+
 func BIT(jb *Jamboy, opcode OpCode) error {
 	bitToTest := byte((opcode - 0x40) / 8)
 	testByte := getRegisterValueFromOpcode(jb, opcode) & (1 << bitToTest)
@@ -27,7 +37,14 @@ func BIT(jb *Jamboy, opcode OpCode) error {
 }
 
 func RES(jb *Jamboy, opcode OpCode) error {
-	panic("not implemented op RES")
+	bitToSet := byte((opcode - 0x80) / 8)
+	byteValue := getRegisterValueFromOpcode(jb, opcode)
+
+	byteValue &= ^(1 << bitToSet)
+
+	writeRegisterValueFromOpcode(jb, opcode, byteValue)
+
+	return nil
 }
 
 func RL(jb *Jamboy, opcode OpCode) error {
@@ -47,7 +64,14 @@ func RRC(jb *Jamboy, opcode OpCode) error {
 }
 
 func SET(jb *Jamboy, opcode OpCode) error {
-	panic("not implemented op SET")
+	bitToSet := byte((opcode - 0xC0) / 8)
+	byteValue := getRegisterValueFromOpcode(jb, opcode)
+
+	byteValue |= 1 << bitToSet
+
+	writeRegisterValueFromOpcode(jb, opcode, byteValue)
+
+	return nil
 }
 
 func SLA(jb *Jamboy, opcode OpCode) error {
