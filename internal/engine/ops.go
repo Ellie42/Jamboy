@@ -5,7 +5,7 @@ import (
 )
 
 var fullOrderedRegisters = []RegisterID{
-	B, C, D, E, H, L, RegisterID(255), A,
+	B, C, D, E, H, L, HL, A,
 }
 
 func CALL(jb *Jamboy, opcode OpCode) (err error) {
@@ -55,15 +55,24 @@ func CP(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func CPL(jb *Jamboy, opcode OpCode) (err error) {
-	panic(fmt.Sprintf("not implemented op CPL -  %x", opcode))
+	jb.CPU.WriteRegister(A, ^jb.CPU.ReadRegisterInstant(A))
+
+	jb.CPU.AddFlags(SubFlag | HalfCarryFlag)
+
+	return nil
 }
 
 func DAA(jb *Jamboy, opcode OpCode) (err error) {
 	panic(fmt.Sprintf("not implemented op DAA -  %x", opcode))
 }
 
-func DEC(jb *Jamboy, opcode OpCode) (err error) {
-	panic(fmt.Sprintf("not implemented op DEC -  %x", opcode))
+var incdec16OrderedRegisters = []RegisterID{
+	BC, DE, HL, SP,
+}
+
+func DEC16(jb *Jamboy, opcode OpCode) (err error) {
+	jb.CPU.Decrement(incdec16OrderedRegisters[opcode&0xF0>>4])
+	return nil
 }
 
 func DI(jb *Jamboy, opcode OpCode) (err error) {
@@ -80,6 +89,13 @@ func EI(jb *Jamboy, opcode OpCode) (err error) {
 
 func HALT(jb *Jamboy, opcode OpCode) (err error) {
 	jb.Halt()
+	return nil
+}
+
+func INC16(jb *Jamboy, opcode OpCode) (err error) {
+	dstRegister := incdec16OrderedRegisters[(opcode&0xF0)>>4]
+	jb.CPU.Increment(dstRegister)
+
 	return nil
 }
 
@@ -234,7 +250,11 @@ func rotateLeftASetCarryFlag(jb *Jamboy, val uint, rotateBit uint8) {
 }
 
 func RLCA(jb *Jamboy, opcode OpCode) (err error) {
-	panic(fmt.Sprintf("not implemented op RLCA -  %x", opcode))
+	val := jb.CPU.ReadRegisterInstant(A)
+
+	rotateLeftASetCarryFlag(jb, val, uint8(val&0x80)>>7)
+
+	return nil
 }
 
 func RRA(jb *Jamboy, opcode OpCode) (err error) {
@@ -261,7 +281,11 @@ func rotateRightASetCarryFlag(jb *Jamboy, val uint, rotateBit uint8) {
 }
 
 func RRCA(jb *Jamboy, opcode OpCode) (err error) {
-	panic(fmt.Sprintf("not implemented op RRCA -  %x", opcode))
+	val := jb.CPU.ReadRegisterInstant(A)
+
+	rotateRightASetCarryFlag(jb, val, uint8(val&1))
+
+	return nil
 }
 
 func RST(jb *Jamboy, opcode OpCode) (err error) {

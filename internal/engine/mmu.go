@@ -17,7 +17,10 @@ var (
 )
 
 const (
-	AddrLY Address = 0xFF44
+	AddrLCDCStatus Address = 0xFF41
+	AddrLCDControl         = 0xFF40
+	AddrLY                 = 0xFF44
+	AddrLYC                = 0xFF45
 )
 
 type Address uint16
@@ -94,10 +97,12 @@ func (m *MMU) Read(addr Address) byte {
 }
 
 func (m *MMU) ReadInstant(addr Address) byte {
+	if m.Jamboy.CPU.IsBooting && addr < 0x0100 {
+		return m.RAM[addr]
+	}
+
 	if (addr.InRange(CartROM0) || addr.InRange(CartROMN)) && int(addr) < len(m.Jamboy.Cart.Data) {
-		if !m.Jamboy.CPU.IsBooting {
-			return m.Jamboy.Cart.Data[addr]
-		}
+		return m.Jamboy.Cart.Data[addr]
 	}
 
 	return m.RAM[addr]

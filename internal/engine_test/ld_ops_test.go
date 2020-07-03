@@ -84,13 +84,13 @@ func TestLD(t *testing.T) {
 	}
 
 	var ldOrderedRegisters = []engine.RegisterID{
-		engine.B, engine.C, engine.D, engine.E, engine.H, engine.L, engine.RegisterID(255), engine.A,
+		engine.B, engine.C, engine.D, engine.E, engine.H, engine.L, engine.HL, engine.A,
 	}
 
 	for loop := 0; loop < 8; loop++ {
 		dstRegister := ldOrderedRegisters[loop]
 
-		if dstRegister == 255 {
+		if dstRegister == HL {
 			for _, test := range tests {
 				_, jb := newTestJamboy()
 

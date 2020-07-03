@@ -1,14 +1,26 @@
 package engine
 
-import "fmt"
-
 type GPU struct {
 	Clocks             uint
 	currentStateClocks int
 	currentState       GPUState
 	currentRow         int
 	jb                 *Jamboy
+	lcdControlFlags    byte
 }
+
+type LCDControlFlag byte
+
+const (
+	LCDCBGDisplayEnable LCDControlFlag = 1 << iota
+	LCDCOBJDisplayEnable
+	LCDCOBJSize
+	LCDCBGTileMapDisplay
+	LCDCBGWindowTileDataSelect
+	LCDCWindowDisplayEnable
+	LCDCWindowTileMapDisplayData
+	LCDCDisplayEnable
+)
 
 const (
 	ResolutionX = 160
@@ -39,16 +51,23 @@ var stateFlags = []byte{
 }
 
 func (g *GPU) Tick() {
+	g.lcdControlFlags = g.jb.MMU.ReadInstant(AddrLCDControl)
+
+	if !g.LCDCFlagEnabled(LCDCDisplayEnable) {
+		g.Clocks = 0
+		return
+	}
+
 	g.currentStateClocks -= int(g.Clocks)
 	g.Clocks = 0
 
 	for g.currentStateClocks < 0 {
 		if g.currentState == VBlank {
 			if g.currentRow < 153 {
-				g.currentRow++
+				g.IncrementRow()
 			} else {
 				g.currentState = OAM
-				g.currentRow = 0
+				g.ResetRow()
 			}
 		} else {
 			g.currentState = GPUState((uint(g.currentState) + 1) % 3)
@@ -59,13 +78,14 @@ func (g *GPU) Tick() {
 		} else if g.currentState == OAM {
 			if g.currentRow == 143 {
 				g.currentState = VBlank
-				fmt.Printf("Vblank!\n")
+				//fmt.Printf("Vblank!\n")
 			}
 
-			g.currentRow++
+			g.IncrementRow()
 		}
 
-		g.jb.MMU.RAM[0xFF41] = (g.jb.MMU.RAM[0xFF41] & 0xFC) | stateFlags[g.currentState]
+		//Setting GPU mode flag
+		g.jb.MMU.RAM[AddrLCDCStatus] = (g.jb.MMU.RAM[AddrLCDCStatus] & (^uint8(0x03))) | stateFlags[g.currentState]
 
 		g.currentStateClocks += int(clockCounts[g.currentState])
 	}
@@ -73,6 +93,43 @@ func (g *GPU) Tick() {
 
 func (g *GPU) DrawRow() {
 	//fmt.Printf("Drawing row\n")
+}
+
+func (g *GPU) IncrementRow() {
+	g.currentRow++
+	g.writeRowValues()
+}
+
+func (g *GPU) ResetRow() {
+	g.currentRow = 0
+	g.writeRowValues()
+}
+
+func (g *GPU) Reset() {
+	g.ResetRow()
+}
+
+func (g *GPU) writeRowValues() {
+	g.jb.MMU.Write(AddrLY, byte(g.currentRow))
+
+	coincidenceFlag := uint8(0)
+
+	if g.currentRow == int(g.jb.MMU.ReadInstant(AddrLYC)) {
+		coincidenceFlag = 0x04
+
+		LYCInterrupt()
+	}
+
+	// Setting LY == LYC coincidence flag
+	g.jb.MMU.RAM[AddrLCDCStatus] = (g.jb.MMU.RAM[AddrLCDCStatus] & (^uint8(0x04))) | coincidenceFlag
+}
+
+func (g GPU) LCDCFlagEnabled(flag LCDControlFlag) bool {
+	return g.jb.MMU.ReadInstant(AddrLCDControl)&byte(flag) > 0
+}
+
+func LYCInterrupt() {
+	//fmt.Println("LYC Interrupt!")
 }
 
 func NewGPU(jamboy *Jamboy) *GPU {

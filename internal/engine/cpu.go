@@ -186,6 +186,14 @@ func (c *CPU) IncrementHL() {
 	c.WriteRegisterInstant(HL, c.ReadRegisterInstant(HL)+1)
 }
 
+func (c *CPU) Decrement(register RegisterID) {
+	c.WriteRegisterInstant(register, c.ReadRegisterInstant(register)-1)
+}
+
+func (c *CPU) Increment(register RegisterID) {
+	c.WriteRegisterInstant(register, c.ReadRegisterInstant(register)+1)
+}
+
 func (c *CPU) DecrementHL() {
 	c.WriteRegisterInstant(HL, c.ReadRegisterInstant(HL)-1)
 }

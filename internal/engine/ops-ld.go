@@ -39,7 +39,7 @@ func LD(jb *Jamboy, opcode OpCode) (err error) {
 		dstRegister := fullOrderedRegisters[opOffset/8]
 		srcRegister := fullOrderedRegisters[opSeq]
 
-		if dstRegister == 255 {
+		if dstRegister == HL {
 			// (HL) = r
 			jb.MMU.Write(Address(jb.CPU.ReadRegister(HL)), byte(jb.CPU.ReadRegisterInstant(srcRegister)))
 		} else if opSeq == 6 {

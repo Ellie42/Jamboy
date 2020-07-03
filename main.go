@@ -75,7 +75,7 @@ func main() {
 	jamboy.PowerOn()
 
 	for !EmulationFinished {
-		if dump != nil && dumpLine > 0 && jamboy.CPU.PC-1 == dumpLine {
+		if dump != nil && dumpLine > 0 && jamboy.CPU.PC == dumpLine {
 			err := ioutil.WriteFile(
 				fmt.Sprintf("dumps/jamboy_ram_dump_%04x.bin", jamboy.CPU.PC),
 				jamboy.MMU.RAM[:], 0777,
