@@ -1,11 +1,11 @@
 package engine
 
-var orderedExtraOps = []RegisterID{
+var orderedExtraOpRegisters = []RegisterID{
 	B, C, D, E, H, L, HL, A, B, C, D, E, H, L, HL, A,
 }
 
 func getRegisterValueFromOpcode(jb *Jamboy, opcode OpCode) byte {
-	register := orderedExtraOps[opcode&0x0F]
+	register := orderedExtraOpRegisters[opcode&0x0F]
 
 	if register == HL {
 		return jb.MMU.Read(Address(jb.CPU.ReadRegisterInstant(register)))
@@ -15,7 +15,7 @@ func getRegisterValueFromOpcode(jb *Jamboy, opcode OpCode) byte {
 }
 
 func writeRegisterValueFromOpcode(jb *Jamboy, opcode OpCode, value byte) {
-	register := orderedExtraOps[opcode&0x0F]
+	register := orderedExtraOpRegisters[opcode&0x0F]
 
 	if register == HL {
 		jb.MMU.Write(Address(jb.CPU.ReadRegisterInstant(register)), value)
@@ -48,19 +48,73 @@ func RES(jb *Jamboy, opcode OpCode) error {
 }
 
 func RL(jb *Jamboy, opcode OpCode) error {
-	panic("not implemented op RL")
+	value := getRegisterValueFromOpcode(jb, opcode)
+
+	carry := jb.CPU.GetFlag(CarryFlag)
+
+	rotateLeftSetFlags(jb, opcode, value, carry)
+
+	return nil
+}
+
+func rotateLeftSetFlags(jb *Jamboy, opcode OpCode, value byte, rotateBit uint8) {
+	jb.CPU.SetFlags(0x0)
+
+	if value&0x80 > 0 {
+		jb.CPU.AddFlags(CarryFlag)
+	}
+
+	value <<= 1
+	value |= rotateBit
+
+	if value == 0 {
+		jb.CPU.AddFlags(ZeroFlag)
+	}
+
+	writeRegisterValueFromOpcode(jb, opcode, value)
 }
 
 func RLC(jb *Jamboy, opcode OpCode) error {
-	panic("not implemented op RLC")
+	value := getRegisterValueFromOpcode(jb, opcode)
+
+	rotateLeftSetFlags(jb, opcode, value, (value&0x80)>>7)
+
+	return nil
 }
 
 func RR(jb *Jamboy, opcode OpCode) error {
-	panic("not implemented op RR")
+	value := getRegisterValueFromOpcode(jb, opcode)
+
+	carry := jb.CPU.GetFlag(CarryFlag)
+
+	rotateRightSetFlags(jb, opcode, value, carry)
+
+	return nil
+}
+
+func rotateRightSetFlags(jb *Jamboy, opcode OpCode, value byte, rotateBit uint8) {
+	jb.CPU.SetFlags(0x0)
+
+	if value&0x01 > 0 {
+		jb.CPU.AddFlags(CarryFlag)
+	}
+
+	value >>= 1
+	value |= rotateBit << 7
+
+	if value == 0 {
+		jb.CPU.AddFlags(ZeroFlag)
+	}
+
+	writeRegisterValueFromOpcode(jb, opcode, value)
 }
 
 func RRC(jb *Jamboy, opcode OpCode) error {
-	panic("not implemented op RRC")
+	value := getRegisterValueFromOpcode(jb, opcode)
+
+	rotateRightSetFlags(jb, opcode, value, value&1)
+
+	return nil
 }
 
 func SET(jb *Jamboy, opcode OpCode) error {

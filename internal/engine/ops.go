@@ -211,7 +211,26 @@ func RETI(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func RLA(jb *Jamboy, opcode OpCode) (err error) {
-	panic(fmt.Sprintf("not implemented op RLA -  %x", opcode))
+	val := jb.CPU.ReadRegisterInstant(A)
+
+	carry := jb.CPU.GetFlag(CarryFlag)
+
+	rotateLeftASetCarryFlag(jb, val, carry)
+
+	return nil
+}
+
+func rotateLeftASetCarryFlag(jb *Jamboy, val uint, rotateBit uint8) {
+	jb.CPU.SetFlags(0x00)
+
+	if val&0x80 > 0 {
+		jb.CPU.AddFlags(CarryFlag)
+	}
+
+	val <<= 1
+	val |= uint(rotateBit)
+
+	jb.CPU.WriteRegister(A, val)
 }
 
 func RLCA(jb *Jamboy, opcode OpCode) (err error) {
@@ -219,7 +238,26 @@ func RLCA(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func RRA(jb *Jamboy, opcode OpCode) (err error) {
-	panic(fmt.Sprintf("not implemented op RRA -  %x", opcode))
+	val := jb.CPU.ReadRegisterInstant(A)
+
+	carry := jb.CPU.GetFlag(CarryFlag)
+
+	rotateRightASetCarryFlag(jb, val, carry)
+
+	return nil
+}
+
+func rotateRightASetCarryFlag(jb *Jamboy, val uint, rotateBit uint8) {
+	jb.CPU.SetFlags(0x00)
+
+	if val&0x01 > 0 {
+		jb.CPU.AddFlags(CarryFlag)
+	}
+
+	val >>= 1
+	val |= uint(rotateBit << 7)
+
+	jb.CPU.WriteRegister(A, val)
 }
 
 func RRCA(jb *Jamboy, opcode OpCode) (err error) {

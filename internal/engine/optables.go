@@ -229,7 +229,7 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	RST,             // 0xDF
 	LDH,             // 0xE0
 	POP,             // 0xE1
-	LD,              // 0xE2
+	LDAToHighRAM,              // 0xE2
 	NOP,             // 0xE3
 	NOP,             // 0xE4
 	PUSH,            // 0xE5
@@ -245,7 +245,7 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	RST,             // 0xEF
 	LDH,             // 0xF0
 	POP,             // 0xF1
-	LD,              // 0xF2
+	LDHighRAMToA,              // 0xF2
 	DI,              // 0xF3
 	NOP,             // 0xF4
 	PUSH,            // 0xF5

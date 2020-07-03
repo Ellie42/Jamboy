@@ -19,6 +19,7 @@ func main() {
 	cartPath := flag.String("cart", "", "Path to cartridge")
 	dump := flag.String("dump-at", "0x0000", "Dump all data at PC Xh")
 	outputDebug := flag.Bool("output-debug", false, "Output debug text")
+	bootROMPath := flag.String("boot-rom-path", "roms/dmg_boot.bin", "Path to DMG boot ROM")
 
 	flag.Parse()
 
@@ -60,11 +61,21 @@ func main() {
 		jamboy.OutputDebug = *outputDebug
 	}
 
+	if bootROMPath != nil && *bootROMPath != "" {
+		rom, err := ioutil.ReadFile(*bootROMPath)
+
+		if err != nil {
+			panic(err)
+		}
+
+		jamboy.CPU.LoadBootRom(rom)
+	}
+
 	jamboy.InsertCartridge(cart)
 	jamboy.PowerOn()
 
 	for !EmulationFinished {
-		if dump != nil && dumpLine > 0 && jamboy.CPU.PC -1  == dumpLine {
+		if dump != nil && dumpLine > 0 && jamboy.CPU.PC-1 == dumpLine {
 			err := ioutil.WriteFile(
 				fmt.Sprintf("dumps/jamboy_ram_dump_%04x.bin", jamboy.CPU.PC),
 				jamboy.MMU.RAM[:], 0777,

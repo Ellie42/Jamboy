@@ -15,6 +15,7 @@ type Jamboy struct {
 
 	OutputDebug bool
 	IsHalted    bool
+	BootROMPath string
 }
 
 func (j *Jamboy) InsertCartridge(cart *Cart) {
