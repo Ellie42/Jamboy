@@ -17,6 +17,7 @@ type Jamboy struct {
 	IsHalted      bool
 	BootROMPath   string
 	currentOPAddr Address
+	LoopBoot      bool
 }
 
 func (j *Jamboy) InsertCartridge(cart *Cart) {
@@ -72,6 +73,10 @@ SP %04x PC %04x
 	}
 
 	j.GPU.Tick()
+
+	if j.CPU.IsBooting && j.MMU.Read(AddrBootROMDisable) > 0 {
+		j.CPU.UnloadBootROM()
+	}
 
 	j.CPU.CurrentOP = j.NextOpInstant()
 

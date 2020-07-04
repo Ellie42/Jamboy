@@ -17,10 +17,11 @@ var (
 )
 
 const (
-	AddrLCDCStatus Address = 0xFF41
-	AddrLCDControl         = 0xFF40
-	AddrLY                 = 0xFF44
-	AddrLYC                = 0xFF45
+	AddrLCDCStatus     Address = 0xFF41
+	AddrLCDControl             = 0xFF40
+	AddrLY                     = 0xFF44
+	AddrLYC                    = 0xFF45
+	AddrBootROMDisable         = 0xFF50
 )
 
 type Address uint16
@@ -51,6 +52,10 @@ type MMU struct {
 }
 
 func (m *MMU) Reset() {
+	for i := 0; i < 0xFFFF; i++ {
+		m.RAM[i] = 0
+	}
+
 	m.RAM[0xFF05] = 0x00 //TIMA
 	m.RAM[0xFF06] = 0x00 //TMA
 	m.RAM[0xFF07] = 0x00 //TAC

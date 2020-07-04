@@ -162,6 +162,8 @@ func (CPU) ExecuteOp() {
 func (c *CPU) Reset() {
 	c.CurrentJumpTable = &BaseOpJumpTable
 
+	c.Registers = make([]uint8, 8)
+
 	c.WriteRegister(AF, 0x01B0)
 	c.WriteRegister(BC, 0x0013)
 	c.WriteRegister(DE, 0x00D8)
@@ -421,9 +423,14 @@ func (c *CPU) LoadBootRom(data []byte) {
 	copy(c.Jamboy.MMU.RAM[0:256], data)
 }
 
+func (c *CPU) UnloadBootROM() {
+	c.IsBooting = false
+	c.PC = 0x100
+	copy(c.Jamboy.MMU.RAM[0:256], make([]byte, 256))
+}
+
 func NewCPU(jb *Jamboy) *CPU {
 	return &CPU{
-		Jamboy:    jb,
-		Registers: make([]uint8, 8),
+		Jamboy: jb,
 	}
 }

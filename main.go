@@ -20,6 +20,7 @@ func main() {
 	dump := flag.String("dump-at", "0x0000", "Dump all data at PC Xh")
 	outputDebug := flag.Bool("output-debug", false, "Output debug text")
 	bootROMPath := flag.String("boot-rom-path", "roms/dmg_boot.bin", "Path to DMG boot ROM")
+	stopAfterBoot := flag.Bool("stop-after-boot", false, "Stop execution after boot ROM run")
 
 	flag.Parse()
 
@@ -75,6 +76,10 @@ func main() {
 	jamboy.PowerOn()
 
 	for !EmulationFinished {
+		if *stopAfterBoot && jamboy.CPU.PC > 0x100 {
+			jamboy.PowerOn()
+		}
+
 		if dump != nil && dumpLine > 0 && jamboy.CPU.PC == dumpLine {
 			err := ioutil.WriteFile(
 				fmt.Sprintf("dumps/jamboy_ram_dump_%04x.bin", jamboy.CPU.PC),
