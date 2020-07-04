@@ -114,6 +114,8 @@ func (w *Window) Open(resX, resY int) {
 	i := 0
 
 	for !w.glfwWindow.ShouldClose() {
+		width, height := w.glfwWindow.GetSize()
+		gl.Viewport(0, 0, int32(width), int32(height))
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 		gl.UseProgram(w.glProgramHandle)
 
