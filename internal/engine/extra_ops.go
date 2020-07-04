@@ -141,5 +141,18 @@ func SRL(jb *Jamboy, opcode OpCode) error {
 }
 
 func SWAP(jb *Jamboy, opcode OpCode) error {
-	panic("not implemented op SWAP")
+	register := orderedExtraOpRegisters[opcode&0x0F]
+
+	jb.CPU.SetFlags(0x0)
+
+	val := jb.CPU.ReadRegister(register)
+	val = (val & 0xF0 >> 4) | (val & 0x0F << 4)
+
+	if val == 0 {
+		jb.CPU.AddFlags(ZeroFlag)
+	}
+
+	jb.CPU.WriteRegister(register, val)
+
+	return nil
 }

@@ -36,8 +36,8 @@ func (j *Jamboy) Tick() error {
 		return nil
 	}
 
-	if j.currentOPAddr == 232 {
-		fmt.Printf("%x\n", j.CPU.PC)
+	if j.currentOPAddr == 0x00FE {
+		fmt.Printf("%x\n", j.currentOPAddr)
 	}
 
 	op := j.CPU.CurrentOP

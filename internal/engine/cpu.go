@@ -345,7 +345,7 @@ func (c *CPU) AndR8(register RegisterID) {
 }
 
 func (c *CPU) And(value uint8) {
-	c.SetFlags(0x00)
+	c.SetFlags(HalfCarryFlag)
 
 	finalValue := value & c.Registers[A]
 

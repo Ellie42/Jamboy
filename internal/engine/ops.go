@@ -289,7 +289,32 @@ func RRCA(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func RST(jb *Jamboy, opcode OpCode) (err error) {
-	panic(fmt.Sprintf("not implemented op RST -  %x", opcode))
+	addr := 0
+
+	switch opcode {
+	case 0xC7:
+		addr = 0x00
+	case 0xD7:
+		addr = 0x10
+	case 0xE7:
+		addr = 0x20
+	case 0xF7:
+		addr = 0x30
+	case 0xCF:
+		addr = 0x08
+	case 0xDF:
+		addr = 0x18
+	case 0xEF:
+		addr = 0x28
+	case 0xFF:
+		addr = 0x38
+	default:
+		panic(fmt.Sprintf("unsupported RST op %x", opcode))
+	}
+
+	jb.CPU.Call(uint16(addr))
+
+	return
 }
 
 func SCF(jb *Jamboy, opcode OpCode) (err error) {

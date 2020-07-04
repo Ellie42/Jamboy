@@ -3,6 +3,11 @@ package engine
 import "fmt"
 
 func SUB(jb *Jamboy, opcode OpCode) (err error) {
+	if opcode == 0xD6 {
+		jb.CPU.Subtract(A, jb.Read8Bit(), false)
+		return
+	}
+
 	if opcode&0xF0 != 0x90 {
 		panic(fmt.Sprintf("unhandled SUB %x", opcode))
 	}
@@ -11,7 +16,7 @@ func SUB(jb *Jamboy, opcode OpCode) (err error) {
 
 	jb.CPU.SubtractR8(A, register, false)
 
-	return nil
+	return
 }
 
 func getOrderedRegister(opcode OpCode) RegisterID {
@@ -19,6 +24,11 @@ func getOrderedRegister(opcode OpCode) RegisterID {
 }
 
 func SBC(jb *Jamboy, opcode OpCode) (err error) {
+	if opcode == 0xDE {
+		jb.CPU.Subtract(A, jb.Read8Bit(), true)
+		return
+	}
+
 	if opcode&0xF0 != 0x90 {
 		panic(fmt.Sprintf("unhandled SBC %x", opcode))
 	}
@@ -31,6 +41,11 @@ func SBC(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func ADC(jb *Jamboy, opcode OpCode) (err error) {
+	if opcode == 0xCE {
+		jb.CPU.Add(A, jb.Read8Bit(), true)
+		return
+	}
+
 	if opcode&0xF0 != 0x80 {
 		panic(fmt.Sprintf("unhandled ADC %x", opcode))
 	}
@@ -43,6 +58,11 @@ func ADC(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func ADD(jb *Jamboy, opcode OpCode) (err error) {
+	if opcode == 0xC6 {
+		jb.CPU.Add(A, jb.Read8Bit(), false)
+		return
+	}
+
 	if opcode&0xF0 != 0x80 {
 		panic(fmt.Sprintf("unhandled ADD %x", opcode))
 	}
@@ -55,6 +75,11 @@ func ADD(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func AND(jb *Jamboy, opcode OpCode) (err error) {
+	if opcode == 0xE6 {
+		jb.CPU.And(jb.Read8Bit())
+		return
+	}
+
 	if opcode&0xF0 != 0xA0 {
 		panic(fmt.Sprintf("unhandled AND %x", opcode))
 	}
@@ -62,11 +87,15 @@ func AND(jb *Jamboy, opcode OpCode) (err error) {
 	register := getOrderedRegister(opcode)
 
 	jb.CPU.AndR8(register)
-
-	panic(fmt.Sprintf("not implemented op AND -  %x", opcode))
+	return
 }
 
 func XOR(jb *Jamboy, opcode OpCode) (err error) {
+	if opcode == 0xEE {
+		jb.CPU.Xor(jb.Read8Bit())
+		return
+	}
+
 	if opcode&0xF0 != 0xA0 {
 		panic(fmt.Sprintf("unhandled XOR %x", opcode))
 	}
@@ -77,11 +106,16 @@ func XOR(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func OR(jb *Jamboy, opcode OpCode) (err error) {
+	if opcode == 0xF6 {
+		jb.CPU.Or(jb.Read8Bit())
+		return
+	}
+
 	if opcode&0xF0 != 0xB0 {
 		panic(fmt.Sprintf("unhandled OR %x", opcode))
 	}
 
 	jb.CPU.OrR8(getOrderedRegister(opcode))
 
-	return nil
+	return
 }

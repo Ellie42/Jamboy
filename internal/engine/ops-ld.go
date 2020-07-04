@@ -150,7 +150,13 @@ func LDAToRAM(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func LDAToHighRAM(jb *Jamboy, opcode OpCode) (err error) {
-	offset := jb.Read8Bit()
+	offset := uint(0)
+
+	if opcode == 0xE2 {
+		offset = jb.CPU.ReadRegisterInstant(C)
+	} else {
+		offset = uint(jb.Read8Bit())
+	}
 
 	jb.MMU.Write(Address(0xFF00+uint(offset)), byte(jb.CPU.ReadRegisterInstant(A)))
 
@@ -158,7 +164,13 @@ func LDAToHighRAM(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func LDHighRAMToA(jb *Jamboy, opcode OpCode) (err error) {
-	offset := jb.Read8Bit()
+	offset := uint(0)
+
+	if opcode == 0xF2 {
+		offset = jb.CPU.ReadRegisterInstant(C)
+	} else {
+		offset = uint(jb.Read8Bit())
+	}
 
 	jb.CPU.WriteRegister(A, uint(jb.MMU.ReadInstant(Address(0xFF00+uint(offset)))))
 
