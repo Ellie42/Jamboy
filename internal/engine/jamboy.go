@@ -134,6 +134,10 @@ func (j *Jamboy) Resume() {
 	j.IsHalted = false
 }
 
+func (j *Jamboy) PowerOff() {
+	j.IsHalted = true
+}
+
 func NewJamboy() *Jamboy {
 	jb := &Jamboy{}
 

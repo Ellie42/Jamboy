@@ -3,6 +3,8 @@ module git.agehadev.com/elliebelly/jamboy
 go 1.14
 
 require (
+	github.com/go-gl/gl v0.0.0-20190320180904-bf2b1f2f34d7
+	github.com/go-gl/glfw/v3.3/glfw v0.0.0-20200625191551-73d3c3675aa3
 	github.com/stretchr/testify v1.4.0
 	go.uber.org/zap v1.15.0
 	golang.org/x/crypto v0.0.0-20191011191535-87dc89f01550

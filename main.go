@@ -7,6 +7,7 @@ import (
 	"fmt"
 	"git.agehadev.com/elliebelly/jamboy/internal"
 	"git.agehadev.com/elliebelly/jamboy/internal/engine"
+	"git.agehadev.com/elliebelly/jamboy/internal/renderer"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"os"
@@ -56,8 +57,24 @@ func main() {
 		os.Exit(1)
 	}
 
+	window := renderer.NewWindow()
 	jamboy := engine.NewJamboy()
 
+	var done chan bool
+
+	go func() {
+		<-window.Initialised
+
+		go runJamboy(jamboy, outputDebug, bootROMPath, cart, stopAfterBoot, dump, dumpLine, done)
+	}()
+
+	window.Open(engine.ResolutionX, engine.ResolutionY)
+
+	jamboy.PowerOff()
+	EmulationFinished = true
+}
+
+func runJamboy(jamboy *engine.Jamboy, outputDebug *bool, bootROMPath *string, cart *engine.Cart, stopAfterBoot *bool, dump *string, dumpLine uint16, done chan bool) {
 	if outputDebug != nil {
 		jamboy.OutputDebug = *outputDebug
 	}
@@ -119,4 +136,6 @@ SP %04x PC %04x
 			EmulationFinished = true
 		}
 	}
+
+	done <- true
 }
