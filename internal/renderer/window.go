@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
+	_ "image/png"
 	"runtime"
 	"strings"
 )
@@ -17,40 +18,69 @@ type Window struct {
 }
 
 type Game struct {
-	Pixels        []uint8
+	Pixels        []byte
 	textureHandle uint32
 	quadVao       uint32
+	UVBO          uint32
 }
 
 var quad = []float32{
-	-1, 1, -1,
-	-1, -1, -1,
-	1, -1, -1,
+	-1, 1, 0, // Top Left
+	-1, -1, 0, // Bottom Left
+	1, -1, 0, // Bottom Right
 
-	-1, 1, -1,
-	1, -1, -1,
-	1, 1, -1,
+	-1, 1, 0, // Top Left
+	1, -1, 0, // Bottom Right
+	1, 1, 0, // Top Right
+}
+
+var quadUVs = []float32{
+	0, 1, // Top Left
+	0, 0, // Bottom Left
+	1, 0, // Bottom Right
+
+	0, 1, // Top Left
+	1, 0, // Bottom Right
+	1, 1, // Top Right
 }
 
 const (
 	vertexShaderSource = `
     #version 410
+
+	layout(location = 1) in vec2 vertexUV;
+
     in vec3 vp;
+
+	out vec2 UV;
+
     void main() {
         gl_Position = vec4(vp, 1.0);
+
+		UV = vertexUV;
     }
 ` + "\x00"
 
 	fragmentShaderSource = `
-    #version 410
-    out vec4 frag_colour;
-    void main() {
-        frag_colour = vec4(1, 1, 1, 1);
-    }
+	#version 410
+
+	in vec2 UV;
+
+	uniform sampler2D tex;
+
+	out vec4 outputColor;
+
+	void main() {
+		outputColor = texture(tex, UV);
+		//outputColor = vec4(UV.x, UV.y,0, 1);
+		//outputColor = vec4(1,1,1,1);
+	}
 ` + "\x00"
 )
 
 func (w *Window) Open(resX, resY int) {
+	w.Game.Pixels = make([]uint8, resX*resY*4)
+
 	w.Initialised = make(chan bool)
 
 	runtime.LockOSThread()
@@ -78,6 +108,7 @@ func (w *Window) Open(resX, resY int) {
 	}
 
 	w.glfwWindow.MakeContextCurrent()
+	w.glfwWindow.SetSizeCallback(w.onWindowSetSize)
 
 	if err := gl.Init(); err != nil {
 		panic(fmt.Sprintf("failed to initialise opengl"))
@@ -101,58 +132,68 @@ func (w *Window) Open(resX, resY int) {
 	gl.AttachShader(w.glProgramHandle, fragmentShader)
 	gl.LinkProgram(w.glProgramHandle)
 
+	w.Game.quadVao, w.Game.UVBO = makeVao(quad, quadUVs)
+
+	//gl.PixelStorei(gl.UNPACK_ALIGNMENT, 1)
+
+	gl.GenTextures(1, &w.Game.textureHandle)
+	gl.ActiveTexture(gl.TEXTURE0)
+	gl.BindTexture(gl.TEXTURE_2D, w.Game.textureHandle)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_BASE_LEVEL, 0)
+	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 0)
+	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
+	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
+	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.NEAREST)
+	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.NEAREST)
+
+	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(resX), int32(resY), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(w.Game.Pixels))
+
+	//textureUniform := gl.GetUniformLocation(w.glProgramHandle, gl.Str("tex\x00"))
+	//gl.Uniform1i(textureUniform, 0)
+	gl.Enable(gl.DEPTH_TEST)
+	gl.DepthFunc(gl.LESS)
+	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
+
 	go func() {
 		w.Initialised <- true
 	}()
 
-	//gl.GenTextures(1, &w.Game.textureHandle)
-
-	w.Game.quadVao = makeVao(quad)
-
-	w.Game.Pixels = make([]uint8, resX*resY*3)
-
 	i := 0
 
 	for !w.glfwWindow.ShouldClose() {
-		width, height := w.glfwWindow.GetSize()
-		gl.Viewport(0, 0, int32(width), int32(height))
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-		gl.UseProgram(w.glProgramHandle)
 
-		if i >= 3 {
-			w.Game.Pixels[i-1] = 0x00
-			w.Game.Pixels[i-2] = 0x00
-			w.Game.Pixels[i-3] = 0x00
+		for j := 0; j < resX*4; j += 4 {
+			pi := (i * resX * 4) + j
+			w.Game.Pixels[pi] = 0x05
+			w.Game.Pixels[pi+1] ^= 0xFF
+			w.Game.Pixels[pi+2] = 0x05
+			w.Game.Pixels[pi+3] = 0xFF
 		}
 
-		w.Game.Pixels[i] = 0xFF
-		w.Game.Pixels[i+1] = 0xFF
-		w.Game.Pixels[i+2] = 0xFF
-		//Clear screen
-		//for(int y = 0; y < SCREEN_HEIGHT; ++y)
-		//for(int x = 0; x < SCREEN_WIDTH; ++x)
-		//screenData[y][x][0] = screenData[y][x][1] = screenData[y][x][2] = 0;
-		//
-
-		//Create a texture
-		//glTexImage2D(GL_TEXTURE_2D, 0, 3, SCREEN_WIDTH, SCREEN_HEIGHT, 0, GL_RGB, GL_UNSIGNED_BYTE, (GLvoid*)screenData);
-		//
-		//Set up the texture
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
-		//
-		//Enable textures
-		//glEnable(GL_TEXTURE_2D);
-
+		gl.UseProgram(w.glProgramHandle)
 		gl.BindVertexArray(w.Game.quadVao)
+
+		gl.ActiveTexture(gl.TEXTURE0)
+		gl.BindTexture(gl.TEXTURE_2D, w.Game.textureHandle)
+		gl.TexImage2D(
+			gl.TEXTURE_2D,
+			0,
+			gl.RGBA,
+			int32(resX),
+			int32(resY),
+			0,
+			gl.RGBA,
+			gl.UNSIGNED_BYTE,
+			gl.Ptr(w.Game.Pixels))
+
 		gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
 
 		w.glfwWindow.SwapBuffers()
 		glfw.PollEvents()
-		i += 3
-		i %= len(w.Game.Pixels)
+
+		i++
+		i %= resY
 	}
 }
 
@@ -160,21 +201,31 @@ func (w *Window) Close() {
 	w.glfwWindow.SetShouldClose(true)
 }
 
+func (w *Window) onWindowSetSize(glfwWindow *glfw.Window, width int, height int) {
+	gl.Viewport(0, 0, int32(width), int32(height))
+}
+
 // makeVao initializes and returns a vertex array from the points provided.
-func makeVao(points []float32) uint32 {
+func makeVao(points []float32, uvs []float32) (vao, uvbo uint32) {
 	var vbo uint32
 	gl.GenBuffers(1, &vbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(points), gl.Ptr(points), gl.STATIC_DRAW)
 
-	var vao uint32
 	gl.GenVertexArrays(1, &vao)
 	gl.BindVertexArray(vao)
 	gl.EnableVertexAttribArray(0)
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
 
-	return vao
+	gl.GenBuffers(1, &uvbo)
+	gl.BindBuffer(gl.ARRAY_BUFFER, uvbo)
+	gl.BufferData(gl.ARRAY_BUFFER, 4*len(uvs), gl.Ptr(uvs), gl.STATIC_DRAW)
+	gl.EnableVertexAttribArray(1)
+	gl.BindBuffer(gl.ARRAY_BUFFER, uvbo)
+	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 0, nil)
+
+	return
 }
 
 func compileShader(source string, shaderType uint32) (uint32, error) {
