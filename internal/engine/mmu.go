@@ -14,6 +14,30 @@ var (
 		From: Address(0x3FFF),
 		To:   Address(0x7FFF),
 	}
+	TileData = MemoryRange{
+		From: Address(0x8000),
+		To:   Address(0x97FF),
+	}
+	TileBlock0 = MemoryRange{
+		From: Address(0x8000),
+		To:   Address(0x87FF),
+	}
+	TileBlock1 = MemoryRange{
+		From: Address(0x8800),
+		To:   Address(0x8FFF),
+	}
+	TileBlock2 = MemoryRange{
+		From: Address(0x9000),
+		To:   Address(0x97FF),
+	}
+	BackgroundMap0 = MemoryRange{
+		From: Address(0x9800),
+		To:   Address(0x9BFF),
+	}
+	BackgroundMap1 = MemoryRange{
+		From: Address(0x9C00),
+		To:   Address(0x9FFF),
+	}
 )
 
 const (

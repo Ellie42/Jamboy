@@ -16,7 +16,7 @@ type Jamboy struct {
 	OutputDebug   bool
 	IsHalted      bool
 	BootROMPath   string
-	currentOPAddr Address
+	CurrentOPAddr Address
 	LoopBoot      bool
 }
 
@@ -24,10 +24,14 @@ func (j *Jamboy) InsertCartridge(cart *Cart) {
 	j.Cart = cart
 }
 
-func (j *Jamboy) PowerOn() {
+func (j *Jamboy) PowerOn(bootROMdata []byte) {
 	j.CPU.Reset()
 	j.MMU.Reset()
 	j.GPU.Reset()
+
+	if bootROMdata != nil {
+		j.CPU.LoadBootRom(bootROMdata)
+	}
 
 	j.CPU.CurrentOP = j.NextOp()
 }
@@ -37,8 +41,8 @@ func (j *Jamboy) Tick() error {
 		return nil
 	}
 
-	if j.currentOPAddr == 0x00FE {
-		fmt.Printf("%x\n", j.currentOPAddr)
+	if j.CurrentOPAddr == 0x00A3 {
+		fmt.Printf("%x\n", j.CurrentOPAddr)
 	}
 
 	op := j.CPU.CurrentOP
@@ -64,7 +68,7 @@ SP %04x PC %04x
 			j.CPU.Registers[B], j.CPU.Registers[C],
 			j.CPU.Registers[D], j.CPU.Registers[E],
 			j.CPU.Registers[H], j.CPU.Registers[L],
-			j.CPU.SP, j.currentOPAddr,
+			j.CPU.SP, j.CurrentOPAddr,
 		)
 	}
 
@@ -86,7 +90,7 @@ SP %04x PC %04x
 func (j *Jamboy) NextOpInstant() (op OpCode) {
 	op = OpCode(j.MMU.ReadInstant(Address(j.CPU.PC)))
 
-	j.currentOPAddr = Address(j.CPU.PC)
+	j.CurrentOPAddr = Address(j.CPU.PC)
 
 	j.CPU.PC += 1
 

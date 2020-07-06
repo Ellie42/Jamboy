@@ -11,7 +11,9 @@ import (
 	"go.uber.org/zap"
 	"io/ioutil"
 	"os"
+	"runtime"
 	"strings"
+	"unsafe"
 )
 
 var EmulationFinished = false
@@ -21,7 +23,7 @@ func main() {
 	dump := flag.String("dump-at", "0x0000", "Dump all data at PC Xh")
 	outputDebug := flag.Bool("output-debug", false, "Output debug text")
 	bootROMPath := flag.String("boot-rom-path", "roms/dmg_boot.bin", "Path to DMG boot ROM")
-	stopAfterBoot := flag.Bool("stop-after-boot", false, "Stop execution after boot ROM run")
+	loopBoot := flag.Bool("loop-boot", false, "Loop loading the boot ROM")
 
 	flag.Parse()
 
@@ -57,49 +59,63 @@ func main() {
 		os.Exit(1)
 	}
 
+	runtime.LockOSThread()
+
+	testPixels := make([]uint8, engine.ResolutionX*engine.ResolutionY*4)
+
 	window := renderer.NewWindow()
 	jamboy := engine.NewJamboy()
+
+	jamboy.GPU.PixelBuffer = &testPixels
 
 	var done chan bool
 
 	go func() {
 		<-window.Initialised
 
-		go runJamboy(jamboy, outputDebug, bootROMPath, cart, stopAfterBoot, dump, dumpLine, done)
+		go runJamboy(jamboy, outputDebug, bootROMPath, cart, loopBoot, dump, dumpLine, done)
 	}()
 
-	window.Open(engine.ResolutionX, engine.ResolutionY)
+	window.Open(engine.ResolutionX, engine.ResolutionY, 4, unsafe.Pointer(&testPixels[0]))
 
 	jamboy.PowerOff()
 	EmulationFinished = true
 }
 
-func runJamboy(jamboy *engine.Jamboy, outputDebug *bool, bootROMPath *string, cart *engine.Cart, stopAfterBoot *bool, dump *string, dumpLine uint16, done chan bool) {
+func runJamboy(jamboy *engine.Jamboy, outputDebug *bool, bootROMPath *string, cart *engine.Cart, loopBoot *bool, dump *string, dumpLine uint16, done chan bool) {
 	if outputDebug != nil {
 		jamboy.OutputDebug = *outputDebug
 	}
 
+	var bootROMdata []byte = nil
+
 	if bootROMPath != nil && *bootROMPath != "" {
-		rom, err := ioutil.ReadFile(*bootROMPath)
+		var err error
+		bootROMdata, err = ioutil.ReadFile(*bootROMPath)
 
 		if err != nil {
 			panic(err)
 		}
-
-		jamboy.CPU.LoadBootRom(rom)
 	}
 
 	jamboy.InsertCartridge(cart)
-	jamboy.PowerOn()
+	jamboy.PowerOn(bootROMdata)
 
 	for !EmulationFinished {
-		if *stopAfterBoot && jamboy.CPU.PC > 0x100 {
-			jamboy.PowerOn()
+		if *loopBoot && jamboy.CPU.PC > 0x100 {
+			jamboy.PowerOn(jamboy.CPU.BootROM)
 		}
 
-		if dump != nil && dumpLine > 0 && jamboy.CPU.PC == dumpLine {
+		err := jamboy.Tick()
+
+		if err != nil {
+			internal.Logger.Error("we're in a bit of jam", zap.Error(err))
+			EmulationFinished = true
+		}
+
+		if dump != nil && dumpLine > 0 && jamboy.CurrentOPAddr == engine.Address(dumpLine) {
 			err := ioutil.WriteFile(
-				fmt.Sprintf("dumps/jamboy_ram_dump_%04x.bin", jamboy.CPU.PC),
+				fmt.Sprintf("dumps/jamboy_ram_dump_%04x.bin", jamboy.CurrentOPAddr),
 				jamboy.MMU.RAM[:], 0777,
 			)
 
@@ -108,7 +124,7 @@ func runJamboy(jamboy *engine.Jamboy, outputDebug *bool, bootROMPath *string, ca
 			}
 
 			err = ioutil.WriteFile(
-				fmt.Sprintf("dumps/jamboy_register_dump_%04x.bin", jamboy.CPU.PC),
+				fmt.Sprintf("dumps/jamboy_register_dump_%04x.txt", jamboy.CurrentOPAddr),
 				[]byte(fmt.Sprintf(`AF %02x%02x BC %02x%02x
 DE %02x%02x HL %02x%02x
 SP %04x PC %04x
@@ -127,13 +143,6 @@ SP %04x PC %04x
 			}
 
 			break
-		}
-
-		err := jamboy.Tick()
-
-		if err != nil {
-			internal.Logger.Error("we're in a bit of jam", zap.Error(err))
-			EmulationFinished = true
 		}
 	}
 

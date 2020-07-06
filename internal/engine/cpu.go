@@ -17,6 +17,7 @@ type CPU struct {
 	Cycles           uint
 	IsBooting        bool
 	HasBootROM       bool
+	BootROM          []byte
 }
 
 //go:generate stringer -type=Register -linecomment
@@ -375,7 +376,7 @@ func (c *CPU) Or(value uint8) {
 }
 
 func (c *CPU) XorR8(register RegisterID) {
-	c.Or(c.getRegisterValue(register))
+	c.Xor(c.getRegisterValue(register))
 }
 
 func (c *CPU) Xor(value uint8) {
@@ -420,6 +421,7 @@ func (c *CPU) GetFlag(flag Flag) uint8 {
 
 func (c *CPU) LoadBootRom(data []byte) {
 	c.HasBootROM = true
+	c.BootROM = data
 	copy(c.Jamboy.MMU.RAM[0:256], data)
 }
 

@@ -7,6 +7,7 @@ import (
 	_ "image/png"
 	"runtime"
 	"strings"
+	"unsafe"
 )
 
 type Window struct {
@@ -18,10 +19,11 @@ type Window struct {
 }
 
 type Game struct {
-	Pixels        []byte
+	Pixels        []uint8
 	textureHandle uint32
 	quadVao       uint32
 	UVBO          uint32
+	pixelsPointer unsafe.Pointer
 }
 
 var quad = []float32{
@@ -78,12 +80,10 @@ const (
 ` + "\x00"
 )
 
-func (w *Window) Open(resX, resY int) {
-	w.Game.Pixels = make([]uint8, resX*resY*4)
-
-	w.Initialised = make(chan bool)
-
+func (w *Window) Open(resX, resY, scale int, pixelPointer unsafe.Pointer) {
 	runtime.LockOSThread()
+
+	//w.Game.Pixels = make([]uint8, resX*resY*4)
 
 	err := glfw.Init()
 
@@ -99,7 +99,7 @@ func (w *Window) Open(resX, resY int) {
 
 	defer glfw.Terminate()
 
-	w.glfwWindow, err = glfw.CreateWindow(resX, resY, "Testing", nil, nil)
+	w.glfwWindow, err = glfw.CreateWindow(resX * scale, resY * scale, "Jamboy", nil, nil)
 
 	w.glfwWindow.SetAspectRatio(resX, resY)
 
@@ -134,8 +134,6 @@ func (w *Window) Open(resX, resY int) {
 
 	w.Game.quadVao, w.Game.UVBO = makeVao(quad, quadUVs)
 
-	//gl.PixelStorei(gl.UNPACK_ALIGNMENT, 1)
-
 	gl.GenTextures(1, &w.Game.textureHandle)
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D, w.Game.textureHandle)
@@ -146,12 +144,9 @@ func (w *Window) Open(resX, resY int) {
 	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.NEAREST)
 	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.NEAREST)
 
-	gl.TexImage2D(gl.TEXTURE_2D, 0, gl.RGBA, int32(resX), int32(resY), 0, gl.RGBA, gl.UNSIGNED_BYTE, gl.Ptr(w.Game.Pixels))
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-	//textureUniform := gl.GetUniformLocation(w.glProgramHandle, gl.Str("tex\x00"))
-	//gl.Uniform1i(textureUniform, 0)
-	gl.Enable(gl.DEPTH_TEST)
-	gl.DepthFunc(gl.LESS)
 	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
 
 	go func() {
@@ -163,13 +158,15 @@ func (w *Window) Open(resX, resY int) {
 	for !w.glfwWindow.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-		for j := 0; j < resX*4; j += 4 {
-			pi := (i * resX * 4) + j
-			w.Game.Pixels[pi] = 0x05
-			w.Game.Pixels[pi+1] ^= 0xFF
-			w.Game.Pixels[pi+2] = 0x05
-			w.Game.Pixels[pi+3] = 0xFF
-		}
+		//for j := 0; j < resX*4; j += 4 {
+		//	pi := (i * resX * 4) + j
+		//	w.Game.Pixels[pi] = 0xFF
+		//	w.Game.Pixels[pi+1] = 0x10
+		//	w.Game.Pixels[pi+2] = 0x08
+		//	w.Game.Pixels[pi+3] ^= 0xFF
+		//}
+
+		//copy(buffer, w.Game.Pixels)
 
 		gl.UseProgram(w.glProgramHandle)
 		gl.BindVertexArray(w.Game.quadVao)
@@ -185,7 +182,8 @@ func (w *Window) Open(resX, resY int) {
 			0,
 			gl.RGBA,
 			gl.UNSIGNED_BYTE,
-			gl.Ptr(w.Game.Pixels))
+			pixelPointer,
+		)
 
 		gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
 
@@ -252,5 +250,9 @@ func compileShader(source string, shaderType uint32) (uint32, error) {
 }
 
 func NewWindow() *Window {
-	return &Window{}
+	window := &Window{
+		Initialised: make(chan bool),
+	}
+
+	return window
 }
