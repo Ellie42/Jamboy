@@ -10,13 +10,19 @@ import (
 	"git.agehadev.com/elliebelly/jamboy/internal/renderer"
 	"go.uber.org/zap"
 	"io/ioutil"
+	"log"
 	"os"
 	"runtime"
+	"runtime/pprof"
 	"strings"
+	"time"
 	"unsafe"
 )
 
 var EmulationFinished = false
+
+var cpuProfile = flag.String("cpu-profile", "", "write cpu profile to `file`")
+var memProfile = flag.String("mem-profile", "", "write memory profile to `file`")
 
 func main() {
 	cartPath := flag.String("cart", "", "Path to cartridge")
@@ -26,6 +32,18 @@ func main() {
 	loopBoot := flag.Bool("loop-boot", false, "Loop loading the boot ROM")
 
 	flag.Parse()
+
+	if *cpuProfile != "" {
+		f, err := os.Create(*cpuProfile)
+		if err != nil {
+			log.Fatal("could not create CPU profile: ", err)
+		}
+		defer f.Close()
+		if err := pprof.StartCPUProfile(f); err != nil {
+			log.Fatal("could not start CPU profile: ", err)
+		}
+		defer pprof.StopCPUProfile()
+	}
 
 	dumpLine := uint16(0)
 
@@ -80,6 +98,18 @@ func main() {
 
 	jamboy.PowerOff()
 	EmulationFinished = true
+
+	if *memProfile != "" {
+		f, err := os.Create(*memProfile)
+		if err != nil {
+			log.Fatal("could not create memory profile: ", err)
+		}
+		defer f.Close()
+		runtime.GC() // get up-to-date statistics
+		if err := pprof.WriteHeapProfile(f); err != nil {
+			log.Fatal("could not write memory profile: ", err)
+		}
+	}
 }
 
 func runJamboy(jamboy *engine.Jamboy, outputDebug *bool, bootROMPath *string, cart *engine.Cart, loopBoot *bool, dump *string, dumpLine uint16, done chan bool) {
@@ -101,48 +131,65 @@ func runJamboy(jamboy *engine.Jamboy, outputDebug *bool, bootROMPath *string, ca
 	jamboy.InsertCartridge(cart)
 	jamboy.PowerOn(bootROMdata)
 
-	for !EmulationFinished {
-		if *loopBoot && jamboy.CPU.PC > 0x100 {
-			jamboy.PowerOn(jamboy.CPU.BootROM)
+	cyclesLeft := 1
+
+	for range time.Tick(16 * time.Millisecond) {
+
+		if EmulationFinished {
+			break
 		}
 
-		err := jamboy.Tick()
+		cyclesLeft += 69905
 
-		if err != nil {
-			internal.Logger.Error("we're in a bit of jam", zap.Error(err))
-			EmulationFinished = true
-		}
+		for cyclesLeft > 0 {
+			//if *loopBoot && jamboy.CPU.PC > 0x100 {
+			//	jamboy.PowerOn(jamboy.CPU.BootROM)
+			//}
 
-		if dump != nil && dumpLine > 0 && jamboy.CurrentOPAddr == engine.Address(dumpLine) {
-			err := ioutil.WriteFile(
-				fmt.Sprintf("dumps/jamboy_ram_dump_%04x.bin", jamboy.CurrentOPAddr),
-				jamboy.MMU.RAM[:], 0777,
-			)
+			cycles := jamboy.CPU.Cycles
+
+			err := jamboy.Tick()
+
+			cyclesThisTick := jamboy.CPU.Cycles - cycles
+			cyclesLeft -= int(cyclesThisTick)
 
 			if err != nil {
-				panic(err)
+				internal.Logger.Error("we're in a bit of jam", zap.Error(err))
+				EmulationFinished = true
 			}
 
-			err = ioutil.WriteFile(
-				fmt.Sprintf("dumps/jamboy_register_dump_%04x.txt", jamboy.CurrentOPAddr),
-				[]byte(fmt.Sprintf(`AF %02x%02x BC %02x%02x
+			if dump != nil && dumpLine > 0 && jamboy.CurrentOPAddr == engine.Address(dumpLine) {
+				err := ioutil.WriteFile(
+					fmt.Sprintf("dumps/jamboy_ram_dump_%04x.bin", jamboy.CurrentOPAddr),
+					jamboy.MMU.RAM[:], 0777,
+				)
+
+				if err != nil {
+					panic(err)
+				}
+
+				err = ioutil.WriteFile(
+					fmt.Sprintf("dumps/jamboy_register_dump_%04x.txt", jamboy.CurrentOPAddr),
+					[]byte(fmt.Sprintf(`AF %02x%02x BC %02x%02x
 DE %02x%02x HL %02x%02x
 SP %04x PC %04x
 -------------------
 `,
-					jamboy.CPU.Registers[engine.A], jamboy.CPU.Registers[engine.F],
-					jamboy.CPU.Registers[engine.B], jamboy.CPU.Registers[engine.C],
-					jamboy.CPU.Registers[engine.D], jamboy.CPU.Registers[engine.E],
-					jamboy.CPU.Registers[engine.H], jamboy.CPU.Registers[engine.L],
-					jamboy.CPU.SP, jamboy.CPU.PC,
-				)), 0777,
-			)
+						jamboy.CPU.Registers[engine.A], jamboy.CPU.Registers[engine.F],
+						jamboy.CPU.Registers[engine.B], jamboy.CPU.Registers[engine.C],
+						jamboy.CPU.Registers[engine.D], jamboy.CPU.Registers[engine.E],
+						jamboy.CPU.Registers[engine.H], jamboy.CPU.Registers[engine.L],
+						jamboy.CPU.SP, jamboy.CPU.PC,
+					)), 0777,
+				)
 
-			if err != nil {
-				panic(err)
+				if err != nil {
+					panic(err)
+				}
+
+				EmulationFinished = true
+				break
 			}
-
-			break
 		}
 	}
 

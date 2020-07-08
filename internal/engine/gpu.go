@@ -1,7 +1,5 @@
 package engine
 
-import "fmt"
-
 type GPU struct {
 	Clocks             uint
 	currentStateClocks int
@@ -83,7 +81,6 @@ func (g *GPU) Tick() {
 		} else if g.currentState == OAM {
 			if g.currentRow == 143 {
 				g.currentState = VBlank
-				//fmt.Printf("Vblank!\n")
 			}
 
 			g.IncrementRow()
@@ -111,19 +108,20 @@ func (g *GPU) DrawRow() {
 		tileData = g.tileDataBlocks[1]
 	}
 
-	currentRow := g.currentRow
+	y := uint(g.currentRow)
 
-	for x := 0; x < ResolutionX; x++ {
-		xTileNum := x / 8
-		yTileNum := ((ResolutionY) - currentRow) / 8
-		xRemainder := x - xTileNum*8
-		yRemainder := ((ResolutionY) - currentRow - yTileNum*8)
+	scrollX := uint(g.jb.MMU.ReadInstant(AddrScrollX))
+	scrollY := uint(g.jb.MMU.ReadInstant(AddrScrollY))
+
+	for x := uint(0); x < ResolutionX; x++ {
+		realX := (scrollX + x) % 0xFF
+		realY := (scrollY + y) % 0xFF
+		xTileNum := realX / 8
+		yTileNum := realY / 8
+		xRemainder := realX - xTileNum*8
+		yRemainder := realY - yTileNum*8
 		currentTile := xTileNum + (yTileNum * 32)
 		tilePosition := tileMap[currentTile]
-
-		if tilePosition > 0 {
-			fmt.Println(tilePosition)
-		}
 
 		var tileByteOffset int
 
@@ -141,7 +139,7 @@ func (g *GPU) DrawRow() {
 
 		palette := blow | (bhigh << 1)
 
-		currentI := x*4 + (currentRow * ResolutionX * 4)
+		currentI := x*4 + (y * ResolutionX * 4)
 
 		if palette > 0 {
 			(*g.PixelBuffer)[currentI] = 0x00

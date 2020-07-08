@@ -25,6 +25,10 @@ func (j *Jamboy) InsertCartridge(cart *Cart) {
 }
 
 func (j *Jamboy) PowerOn(bootROMdata []byte) {
+	if bootROMdata != nil {
+		j.CPU.HasBootROM = true
+	}
+
 	j.CPU.Reset()
 	j.MMU.Reset()
 	j.GPU.Reset()
@@ -41,9 +45,9 @@ func (j *Jamboy) Tick() error {
 		return nil
 	}
 
-	if j.CurrentOPAddr == 0x00A3 {
-		fmt.Printf("%x\n", j.CurrentOPAddr)
-	}
+	//if j.CurrentOPAddr == 0x00A3 {
+	//	fmt.Printf("%x\n", j.CurrentOPAddr)
+	//}
 
 	op := j.CPU.CurrentOP
 

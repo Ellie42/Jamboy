@@ -41,8 +41,10 @@ var (
 )
 
 const (
-	AddrLCDCStatus     Address = 0xFF41
-	AddrLCDControl             = 0xFF40
+	AddrLCDControl     Address = 0xFF40
+	AddrLCDCStatus             = 0xFF41
+	AddrScrollY                = 0xFF42
+	AddrScrollX                = 0xFF43
 	AddrLY                     = 0xFF44
 	AddrLYC                    = 0xFF45
 	AddrBootROMDisable         = 0xFF50

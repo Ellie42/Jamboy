@@ -37,14 +37,22 @@ var quad = []float32{
 }
 
 var quadUVs = []float32{
-	0, 1, // Top Left
-	0, 0, // Bottom Left
-	1, 0, // Bottom Right
+	0, 0, // Top Left
+	0, 1, // Bottom Left
+	1, 1, // Bottom Right
 
-	0, 1, // Top Left
-	1, 0, // Bottom Right
-	1, 1, // Top Right
+	0, 0, // Top Left
+	1, 1, // Bottom Right
+	1, 0, // Top Right
 }
+
+//	0, 1, // Top Left
+//	0, 0, // Bottom Left
+//	1, 0, // Bottom Right
+//
+//	0, 1, // Top Left
+//	1, 0, // Bottom Right
+//	1, 1, // Top Right
 
 const (
 	vertexShaderSource = `
@@ -82,8 +90,6 @@ const (
 
 func (w *Window) Open(resX, resY, scale int, pixelPointer unsafe.Pointer) {
 	runtime.LockOSThread()
-
-	//w.Game.Pixels = make([]uint8, resX*resY*4)
 
 	err := glfw.Init()
 

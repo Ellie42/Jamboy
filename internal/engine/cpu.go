@@ -180,7 +180,7 @@ func (c *CPU) Reset() {
 	}
 }
 
-func (c CPU) Wait(i uint) {
+func (c *CPU) Wait(i uint) {
 	c.Cycles += i * 4
 	c.Jamboy.GPU.Clocks += i
 }
