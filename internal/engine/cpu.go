@@ -398,7 +398,9 @@ func (c *CPU) CompareR8(register RegisterID) {
 func (c *CPU) Compare(value uint8) {
 	c.SetFlags(0x00)
 
-	if c.Registers[A] >= 0x10 && value > 0 {
+	finalValue := int(c.Registers[A]) - int(value)
+
+	if c.Registers[A] >= 0x10 && finalValue < 0x10 {
 		c.AddFlags(HalfCarryFlag)
 	}
 

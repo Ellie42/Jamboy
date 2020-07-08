@@ -119,3 +119,29 @@ func OR(jb *Jamboy, opcode OpCode) (err error) {
 
 	return
 }
+
+var addHLOrderedRegister = []RegisterID{
+	BC, DE, HL, SP,
+}
+
+func ADDToHL(jb *Jamboy, opcode OpCode) (err error) {
+	flags := Flag(0x00)
+
+	hlVal := jb.CPU.ReadRegisterInstant(HL)
+	other := jb.CPU.ReadRegister(addHLOrderedRegister[opcode&0xF0>>4])
+
+	finalValue := hlVal + other
+
+	if hlVal < 0x1000 && finalValue >= 0x1000 {
+		flags |= HalfCarryFlag
+	}
+
+	if finalValue >= 0x10000 {
+		flags |= CarryFlag
+	}
+
+	jb.CPU.WriteRegister(HL, finalValue)
+	jb.CPU.SetFlagsMasked(flags, ZeroFlag|CarryFlag|HalfCarryFlag)
+
+	return nil
+}

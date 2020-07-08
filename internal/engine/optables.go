@@ -6,13 +6,13 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	NOP,             // 0x00
 	LDd16,           // 0x01
 	LDAToRAM,        // 0x02
-	INC16,            // 0x03
+	INC16,           // 0x03
 	INCA,            // 0x04
 	DECA,            // 0x05
 	LDd8A,           // 0x06
 	RLCA,            // 0x07
 	LD,              // 0x08
-	ADD,             // 0x09
+	ADDToHL,         // 0x09
 	LDRAMToA,        // 0x0A
 	DEC16,           // 0x0B
 	INCB,            // 0x0C
@@ -22,13 +22,13 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	STOP,            // 0x10
 	LDd16,           // 0x11
 	LDAToRAM,        // 0x12
-	INC16,            // 0x13
+	INC16,           // 0x13
 	INCA,            // 0x14
 	DECA,            // 0x15
 	LDd8A,           // 0x16
 	RLA,             // 0x17
 	JR,              // 0x18
-	ADD,             // 0x19
+	ADDToHL,         // 0x19
 	LDRAMToA,        // 0x1A
 	DEC16,           // 0x1B
 	INCB,            // 0x1C
@@ -38,13 +38,13 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	JR,              // 0x20
 	LDd16,           // 0x21
 	LDAToRAM,        // 0x22
-	INC16,            // 0x23
+	INC16,           // 0x23
 	INCA,            // 0x24
 	DECA,            // 0x25
 	LDd8A,           // 0x26
 	DAA,             // 0x27
 	JR,              // 0x28
-	ADD,             // 0x29
+	ADDToHL,         // 0x29
 	LDRAMToA,        // 0x2A
 	DEC16,           // 0x2B
 	INCB,            // 0x2C
@@ -54,13 +54,13 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	JR,              // 0x30
 	LDd16,           // 0x31
 	LDAToRAM,        // 0x32
-	INC16,            // 0x33
+	INC16,           // 0x33
 	INCA,            // 0x34
 	DECA,            // 0x35
 	LDd8A,           // 0x36
 	SCF,             // 0x37
 	JR,              // 0x38
-	ADD,             // 0x39
+	ADDToHL,         // 0x39
 	LDRAMToA,        // 0x3A
 	DEC16,           // 0x3B
 	INCB,            // 0x3C

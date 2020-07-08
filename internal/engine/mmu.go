@@ -1,5 +1,7 @@
 package engine
 
+import "runtime"
+
 type MemoryRange struct {
 	From Address
 	To   Address
@@ -13,6 +15,10 @@ var (
 	CartROMN = MemoryRange{
 		From: Address(0x3FFF),
 		To:   Address(0x7FFF),
+	}
+	VRAM = MemoryRange{
+		From: 0x8000,
+		To:   0x9FFF,
 	}
 	TileData = MemoryRange{
 		From: Address(0x8000),
@@ -117,6 +123,10 @@ func (m *MMU) Reset() {
 
 func (m *MMU) Write(addr Address, i byte) {
 	m.Jamboy.CPU.Wait(1)
+
+	if addr.InRange(VRAM) {
+		runtime.Breakpoint()
+	}
 
 	m.RAM[addr] = i
 }

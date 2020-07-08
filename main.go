@@ -23,6 +23,7 @@ var EmulationFinished = false
 
 var cpuProfile = flag.String("cpu-profile", "", "write cpu profile to `file`")
 var memProfile = flag.String("mem-profile", "", "write memory profile to `file`")
+var noBoot = flag.Bool("no-boot", false, "skip boot ROM")
 
 func main() {
 	cartPath := flag.String("cart", "", "Path to cartridge")
@@ -119,7 +120,7 @@ func runJamboy(jamboy *engine.Jamboy, outputDebug *bool, bootROMPath *string, ca
 
 	var bootROMdata []byte = nil
 
-	if bootROMPath != nil && *bootROMPath != "" {
+	if bootROMPath != nil && *bootROMPath != "" && !*noBoot {
 		var err error
 		bootROMdata, err = ioutil.ReadFile(*bootROMPath)
 
