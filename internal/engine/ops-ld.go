@@ -60,7 +60,7 @@ var ld8AOrderedRegistersA = []RegisterID{
 	B, D, H, HL,
 }
 
-func LDd8A(jb *Jamboy, opcode OpCode) (err error) {
+func LDd8_0(jb *Jamboy, opcode OpCode) (err error) {
 	dstRegister := ld8AOrderedRegistersA[opcode&0xF0>>4]
 
 	if dstRegister == HL {
@@ -76,7 +76,7 @@ var ld8OrderedRegistersB = []RegisterID{
 	C, E, L, A,
 }
 
-func LDd8B(jb *Jamboy, opcode OpCode) (err error) {
+func LDd8_1(jb *Jamboy, opcode OpCode) (err error) {
 	dstRegister := ld8OrderedRegistersB[opcode&0xF0>>4]
 
 	jb.CPU.WriteRegister(dstRegister, uint(jb.Read8Bit()))

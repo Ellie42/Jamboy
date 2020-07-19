@@ -7,65 +7,65 @@ var BaseOpJumpTable = []func(jb *Jamboy, opcode OpCode) (err error){
 	LDd16,           // 0x01
 	LDAToRAM,        // 0x02
 	INC16,           // 0x03
-	INCA,            // 0x04
-	DECA,            // 0x05
-	LDd8A,           // 0x06
+	INC_0,           // 0x04
+	DEC_0,           // 0x05
+	LDd8_0,          // 0x06
 	RLCA,            // 0x07
 	LD,              // 0x08
 	ADDToHL,         // 0x09
 	LDRAMToA,        // 0x0A
 	DEC16,           // 0x0B
-	INCB,            // 0x0C
-	DECB,            // 0x0D
-	LDd8B,           // 0x0E
+	INC_1,           // 0x0C
+	DEC_1,           // 0x0D
+	LDd8_1,          // 0x0E
 	RRCA,            // 0x0F
 	STOP,            // 0x10
 	LDd16,           // 0x11
 	LDAToRAM,        // 0x12
 	INC16,           // 0x13
-	INCA,            // 0x14
-	DECA,            // 0x15
-	LDd8A,           // 0x16
+	INC_0,           // 0x14
+	DEC_0,           // 0x15
+	LDd8_0,          // 0x16
 	RLA,             // 0x17
 	JR,              // 0x18
 	ADDToHL,         // 0x19
 	LDRAMToA,        // 0x1A
 	DEC16,           // 0x1B
-	INCB,            // 0x1C
-	DECB,            // 0x1D
-	LDd8B,           // 0x1E
+	INC_1,           // 0x1C
+	DEC_1,           // 0x1D
+	LDd8_1,          // 0x1E
 	RRA,             // 0x1F
 	JR,              // 0x20
 	LDd16,           // 0x21
 	LDAToRAM,        // 0x22
 	INC16,           // 0x23
-	INCA,            // 0x24
-	DECA,            // 0x25
-	LDd8A,           // 0x26
+	INC_0,           // 0x24
+	DEC_0,           // 0x25
+	LDd8_0,          // 0x26
 	DAA,             // 0x27
 	JR,              // 0x28
 	ADDToHL,         // 0x29
 	LDRAMToA,        // 0x2A
 	DEC16,           // 0x2B
-	INCB,            // 0x2C
-	DECB,            // 0x2D
-	LDd8B,           // 0x2E
+	INC_1,           // 0x2C
+	DEC_1,           // 0x2D
+	LDd8_1,          // 0x2E
 	CPL,             // 0x2F
 	JR,              // 0x30
 	LDd16,           // 0x31
 	LDAToRAM,        // 0x32
 	INC16,           // 0x33
-	INCA,            // 0x34
-	DECA,            // 0x35
-	LDd8A,           // 0x36
+	INC_0,           // 0x34
+	DEC_0,           // 0x35
+	LDd8_0,          // 0x36
 	SCF,             // 0x37
 	JR,              // 0x38
 	ADDToHL,         // 0x39
 	LDRAMToA,        // 0x3A
 	DEC16,           // 0x3B
-	INCB,            // 0x3C
-	DECB,            // 0x3D
-	LDd8B,           // 0x3E
+	INC_1,           // 0x3C
+	DEC_1,           // 0x3D
+	LDd8_1,          // 0x3E
 	CCF,             // 0x3F
 	LD,              // 0x40
 	LD,              // 0x41

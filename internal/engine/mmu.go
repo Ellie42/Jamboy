@@ -1,7 +1,5 @@
 package engine
 
-import "runtime"
-
 type MemoryRange struct {
 	From Address
 	To   Address
@@ -125,7 +123,7 @@ func (m *MMU) Write(addr Address, i byte) {
 	m.Jamboy.CPU.Wait(1)
 
 	if addr.InRange(VRAM) {
-		runtime.Breakpoint()
+		//runtime.Breakpoint()
 	}
 
 	m.RAM[addr] = i

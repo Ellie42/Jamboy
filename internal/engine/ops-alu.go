@@ -4,7 +4,7 @@ import "fmt"
 
 func SUB(jb *Jamboy, opcode OpCode) (err error) {
 	if opcode == 0xD6 {
-		jb.CPU.Subtract(A, jb.Read8Bit(), false)
+		jb.CPU.Subtract(A, jb.Read8Bit(), false, true)
 		return
 	}
 
@@ -25,7 +25,7 @@ func getOrderedRegister(opcode OpCode) RegisterID {
 
 func SBC(jb *Jamboy, opcode OpCode) (err error) {
 	if opcode == 0xDE {
-		jb.CPU.Subtract(A, jb.Read8Bit(), true)
+		jb.CPU.Subtract(A, jb.Read8Bit(), true, true)
 		return
 	}
 
@@ -42,7 +42,7 @@ func SBC(jb *Jamboy, opcode OpCode) (err error) {
 
 func ADC(jb *Jamboy, opcode OpCode) (err error) {
 	if opcode == 0xCE {
-		jb.CPU.Add(A, jb.Read8Bit(), true)
+		jb.CPU.Add(A, jb.Read8Bit(), true, true)
 		return
 	}
 
@@ -59,7 +59,7 @@ func ADC(jb *Jamboy, opcode OpCode) (err error) {
 
 func ADD(jb *Jamboy, opcode OpCode) (err error) {
 	if opcode == 0xC6 {
-		jb.CPU.Add(A, jb.Read8Bit(), false)
+		jb.CPU.Add(A, jb.Read8Bit(), false, true)
 		return
 	}
 

@@ -260,10 +260,10 @@ func (c *CPU) Return() {
 }
 
 func (c *CPU) AddR8(a RegisterID, b RegisterID, withCarry bool) {
-	c.Add(a, c.getRegisterValue(b), withCarry)
+	c.Add(a, c.getRegisterValue(b), withCarry, true)
 }
 
-func (c *CPU) Add(a RegisterID, b uint8, withCarry bool) {
+func (c *CPU) Add(a RegisterID, b uint8, withCarry bool, setCarryFlag bool) {
 	srcValue := c.ReadRegister(a)
 	finalValue := uint(srcValue)
 
@@ -297,7 +297,7 @@ func (c *CPU) Add(a RegisterID, b uint8, withCarry bool) {
 }
 
 func (c *CPU) SubtractR8(a RegisterID, b RegisterID, withCarry bool) {
-	c.Subtract(a, c.getRegisterValue(b), withCarry)
+	c.Subtract(a, c.getRegisterValue(b), withCarry, true)
 }
 
 func (c *CPU) getRegisterValue(register RegisterID) (value uint8) {
@@ -310,7 +310,7 @@ func (c *CPU) getRegisterValue(register RegisterID) (value uint8) {
 	return
 }
 
-func (c *CPU) Subtract(a RegisterID, b uint8, withCarry bool) {
+func (c *CPU) Subtract(a RegisterID, b uint8, withCarry, setCarryFlag bool) {
 	srcValue := int(c.ReadRegister(a))
 	finalValue := int(srcValue)
 
@@ -338,7 +338,7 @@ func (c *CPU) Subtract(a RegisterID, b uint8, withCarry bool) {
 		c.AddFlags(HalfCarryFlag)
 	}
 
-	if finalValue < 0 {
+	if setCarryFlag && finalValue < 0 {
 		c.AddFlags(CarryFlag)
 	}
 }

@@ -107,7 +107,7 @@ var incdecBOrderedRegisters = []RegisterID{
 	C, E, L, A,
 }
 
-func INCA(jb *Jamboy, opcode OpCode) (err error) {
+func INC_0(jb *Jamboy, opcode OpCode) (err error) {
 	dstRegister := incdecAOrderedRegisters[(opcode&0xF0)>>4]
 	IncrementRegister(jb, dstRegister)
 
@@ -115,14 +115,14 @@ func INCA(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func IncrementRegister(jb *Jamboy, dstRegister RegisterID) {
-	jb.CPU.Add(dstRegister, 1, false)
+	jb.CPU.Add(dstRegister, 1, false, false)
 }
 
 func DecrementRegister(jb *Jamboy, dstRegister RegisterID) {
-	jb.CPU.Subtract(dstRegister, 1, false)
+	jb.CPU.Subtract(dstRegister, 1, false, false)
 }
 
-func INCB(jb *Jamboy, opcode OpCode) (err error) {
+func INC_1(jb *Jamboy, opcode OpCode) (err error) {
 	dstRegister := incdecBOrderedRegisters[(opcode&0xF0)>>4]
 
 	IncrementRegister(jb, dstRegister)
@@ -130,7 +130,7 @@ func INCB(jb *Jamboy, opcode OpCode) (err error) {
 	return nil
 }
 
-func DECA(jb *Jamboy, opcode OpCode) (err error) {
+func DEC_0(jb *Jamboy, opcode OpCode) (err error) {
 	dstRegister := incdecAOrderedRegisters[(opcode&0xF0)>>4]
 
 	DecrementRegister(jb, dstRegister)
@@ -138,7 +138,7 @@ func DECA(jb *Jamboy, opcode OpCode) (err error) {
 	return nil
 }
 
-func DECB(jb *Jamboy, opcode OpCode) (err error) {
+func DEC_1(jb *Jamboy, opcode OpCode) (err error) {
 	dstRegister := incdecBOrderedRegisters[(opcode&0xF0)>>4]
 
 	DecrementRegister(jb, dstRegister)
