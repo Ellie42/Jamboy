@@ -85,7 +85,7 @@ func main() {
 	window := renderer.NewWindow()
 	jamboy := engine.NewJamboy()
 
-	jamboy.GPU.PixelBuffer = &testPixels
+	jamboy.GPU.PixelBuffer = testPixels
 
 	var done chan bool
 
@@ -95,7 +95,7 @@ func main() {
 		go runJamboy(jamboy, outputDebug, bootROMPath, cart, loopBoot, dump, dumpLine, done)
 	}()
 
-	window.Open(engine.ResolutionX, engine.ResolutionY, 4, unsafe.Pointer(&testPixels[0]))
+	window.Open(engine.ResolutionX, engine.ResolutionY, unsafe.Pointer(&testPixels[0]))
 
 	jamboy.PowerOff()
 	EmulationFinished = true

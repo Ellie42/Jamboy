@@ -18,42 +18,6 @@ type Window struct {
 	Game Game
 }
 
-type Game struct {
-	Pixels        []uint8
-	textureHandle uint32
-	quadVao       uint32
-	UVBO          uint32
-	pixelsPointer unsafe.Pointer
-}
-
-var quad = []float32{
-	-1, 1, 0, // Top Left
-	-1, -1, 0, // Bottom Left
-	1, -1, 0, // Bottom Right
-
-	-1, 1, 0, // Top Left
-	1, -1, 0, // Bottom Right
-	1, 1, 0, // Top Right
-}
-
-var quadUVs = []float32{
-	0, 0, // Top Left
-	0, 1, // Bottom Left
-	1, 1, // Bottom Right
-
-	0, 0, // Top Left
-	1, 1, // Bottom Right
-	1, 0, // Top Right
-}
-
-//	0, 1, // Top Left
-//	0, 0, // Bottom Left
-//	1, 0, // Bottom Right
-//
-//	0, 1, // Top Left
-//	1, 0, // Bottom Right
-//	1, 1, // Top Right
-
 const (
 	vertexShaderSource = `
     #version 410
@@ -88,7 +52,13 @@ const (
 ` + "\x00"
 )
 
-func (w *Window) Open(resX, resY, scale int, pixelPointer unsafe.Pointer) {
+func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer) {
+	w.Game.gameBoyAspectRatioMulti = float32(resY) / float32(resX)
+	w.Game.PanelWidth = 0.333333
+	w.Game.ResX = int32(resX)
+	w.Game.ResY = int32(resY)
+	w.Game.pixelsPointer = pixelPointer
+
 	runtime.LockOSThread()
 
 	err := glfw.Init()
@@ -105,9 +75,7 @@ func (w *Window) Open(resX, resY, scale int, pixelPointer unsafe.Pointer) {
 
 	defer glfw.Terminate()
 
-	w.glfwWindow, err = glfw.CreateWindow(resX * scale, resY * scale, "Jamboy", nil, nil)
-
-	w.glfwWindow.SetAspectRatio(resX, resY)
+	w.glfwWindow, err = glfw.CreateWindow(2560, 1440, "Jamboy", nil, nil)
 
 	if err != nil {
 		panic(err)
@@ -138,22 +106,9 @@ func (w *Window) Open(resX, resY, scale int, pixelPointer unsafe.Pointer) {
 	gl.AttachShader(w.glProgramHandle, fragmentShader)
 	gl.LinkProgram(w.glProgramHandle)
 
-	w.Game.quadVao, w.Game.UVBO = makeVao(quad, quadUVs)
+	w.Game.InitGL(w)
 
-	gl.GenTextures(1, &w.Game.textureHandle)
-	gl.ActiveTexture(gl.TEXTURE0)
-	gl.BindTexture(gl.TEXTURE_2D, w.Game.textureHandle)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_BASE_LEVEL, 0)
-	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 0)
-	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
-	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
-	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.NEAREST)
-	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.NEAREST)
-
-	gl.Enable(gl.BLEND)
-	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
-
-	gl.ClearColor(1.0, 1.0, 1.0, 1.0)
+	gl.ClearColor(0.1, 0.1, 0.2, 1.0)
 
 	go func() {
 		w.Initialised <- true
@@ -164,34 +119,9 @@ func (w *Window) Open(resX, resY, scale int, pixelPointer unsafe.Pointer) {
 	for !w.glfwWindow.ShouldClose() {
 		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
 
-		//for j := 0; j < resX*4; j += 4 {
-		//	pi := (i * resX * 4) + j
-		//	w.Game.Pixels[pi] = 0xFF
-		//	w.Game.Pixels[pi+1] = 0x10
-		//	w.Game.Pixels[pi+2] = 0x08
-		//	w.Game.Pixels[pi+3] ^= 0xFF
-		//}
-
-		//copy(buffer, w.Game.Pixels)
-
 		gl.UseProgram(w.glProgramHandle)
-		gl.BindVertexArray(w.Game.quadVao)
 
-		gl.ActiveTexture(gl.TEXTURE0)
-		gl.BindTexture(gl.TEXTURE_2D, w.Game.textureHandle)
-		gl.TexImage2D(
-			gl.TEXTURE_2D,
-			0,
-			gl.RGBA,
-			int32(resX),
-			int32(resY),
-			0,
-			gl.RGBA,
-			gl.UNSIGNED_BYTE,
-			pixelPointer,
-		)
-
-		gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
+		w.Game.Render(w)
 
 		w.glfwWindow.SwapBuffers()
 		glfw.PollEvents()
@@ -201,12 +131,14 @@ func (w *Window) Open(resX, resY, scale int, pixelPointer unsafe.Pointer) {
 	}
 }
 
+
 func (w *Window) Close() {
 	w.glfwWindow.SetShouldClose(true)
 }
 
 func (w *Window) onWindowSetSize(glfwWindow *glfw.Window, width int, height int) {
 	gl.Viewport(0, 0, int32(width), int32(height))
+	w.Game.OnWindowResize(w)
 }
 
 // makeVao initializes and returns a vertex array from the points provided.

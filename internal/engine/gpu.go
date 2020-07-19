@@ -7,7 +7,7 @@ type GPU struct {
 	currentRow         int
 	jb                 *Jamboy
 	lcdControlFlags    byte
-	PixelBuffer        *[]uint8
+	PixelBuffer        []uint8
 	backgroundMaps     [][]byte
 	tileDataBlocks     [][]byte
 }
@@ -142,15 +142,15 @@ func (g *GPU) DrawRow() {
 		currentI := x*4 + (y * ResolutionX * 4)
 
 		if palette > 0 {
-			(*g.PixelBuffer)[currentI] = 0x00
-			(*g.PixelBuffer)[currentI+1] = 0x00
-			(*g.PixelBuffer)[currentI+2] = 0x00
-			(*g.PixelBuffer)[currentI+3] = 0xFF
+			g.PixelBuffer[currentI] = 0x00
+			g.PixelBuffer[currentI+1] = 0x00
+			g.PixelBuffer[currentI+2] = 0x00
+			g.PixelBuffer[currentI+3] = 0xFF
 		} else {
-			(*g.PixelBuffer)[currentI] = 0xFF
-			(*g.PixelBuffer)[currentI+1] = 0xFF
-			(*g.PixelBuffer)[currentI+2] = 0xFF
-			(*g.PixelBuffer)[currentI+3] = 0xFF
+			g.PixelBuffer[currentI] = 0xFF
+			g.PixelBuffer[currentI+1] = 0xFF
+			g.PixelBuffer[currentI+2] = 0xFF
+			g.PixelBuffer[currentI+3] = 0xFF
 		}
 	}
 }
