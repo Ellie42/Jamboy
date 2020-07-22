@@ -18,7 +18,7 @@ func (g *GameWidget) Init(parent widget.WidgetParent) {
 }
 
 func (g GameWidget) Render() {
-	viewportRect := calculateViewport(g.Parent)
+	viewportRect := calculateViewport(g.Index, g.Parent)
 
 	gl.Viewport(
 		int32(viewportRect.X),
@@ -30,8 +30,8 @@ func (g GameWidget) Render() {
 	g.Game.Render()
 }
 
-func calculateViewport(parent widget.WidgetParent) dimension.Rect {
-	parentRect := parent.GetRectRelative()
+func calculateViewport(index int, parent widget.WidgetParent) dimension.Rect {
+	parentRect := parent.GetChildRectRelative(index)
 	resolution := window.Context.Resolution
 
 	return dimension.Rect{

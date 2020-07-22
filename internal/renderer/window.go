@@ -57,7 +57,9 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 
 	gooeyWindow.Layout.Add(
 		widget.NewPanel(
-			NewGameWidget(&w.Game),
+			widget.NewLinearLayout(
+				NewGameWidget(&w.Game),
+			),
 		),
 	)
 
