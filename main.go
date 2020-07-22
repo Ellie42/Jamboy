@@ -80,12 +80,12 @@ func main() {
 
 	runtime.LockOSThread()
 
-	testPixels := make([]uint8, engine.ResolutionX*engine.ResolutionY*4)
+	pixels := make([]uint8, engine.ResolutionX*engine.ResolutionY*4)
 
 	window := renderer.NewWindow()
 	jamboy := engine.NewJamboy()
 
-	jamboy.GPU.PixelBuffer = testPixels
+	jamboy.GPU.PixelBuffer = pixels
 
 	var done chan bool
 
@@ -95,22 +95,10 @@ func main() {
 		go runJamboy(jamboy, outputDebug, bootROMPath, cart, loopBoot, dump, dumpLine, done)
 	}()
 
-	window.Open(engine.ResolutionX, engine.ResolutionY, unsafe.Pointer(&testPixels[0]))
+	window.Open(engine.ResolutionX, engine.ResolutionY, unsafe.Pointer(&pixels[0]), pixels)
 
 	jamboy.PowerOff()
 	EmulationFinished = true
-
-	if *memProfile != "" {
-		f, err := os.Create(*memProfile)
-		if err != nil {
-			log.Fatal("could not create memory profile: ", err)
-		}
-		defer f.Close()
-		runtime.GC() // get up-to-date statistics
-		if err := pprof.WriteHeapProfile(f); err != nil {
-			log.Fatal("could not write memory profile: ", err)
-		}
-	}
 }
 
 func runJamboy(jamboy *engine.Jamboy, outputDebug *bool, bootROMPath *string, cart *engine.Cart, loopBoot *bool, dump *string, dumpLine uint16, done chan bool) {

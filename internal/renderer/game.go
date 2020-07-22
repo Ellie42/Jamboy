@@ -1,7 +1,9 @@
 package renderer
 
 import (
+	"github.com/AllenDang/giu"
 	"github.com/go-gl/gl/v4.6-core/gl"
+	"image"
 	"unsafe"
 )
 
@@ -16,36 +18,35 @@ type Game struct {
 	pixelsPointer unsafe.Pointer
 	ResX          int32
 	ResY          int32
+	PixelTexure   *giu.Texture
+	PixelImage    *image.RGBA
+	ImageWidget   *giu.ImageWidget
 }
 
-func (g Game) SetupGamePanel(w *Window) {
+func (g *Game) SetupGamePanel() {
 	resizedQuad := make([]float32, len(quad))
 
 	copy(resizedQuad, quad)
 
-	width, height := w.glfwWindow.GetSize()
-	windowAspect := float32(width) / float32(height)
-	panelWidth := w.Game.PanelWidth * 2
+	panelWidth := float32(2)
+	windowHeight := panelWidth
 
 	for i := 0; i < len(resizedQuad); i += 3 {
 		x := resizedQuad[i]
 		y := resizedQuad[i+1]
 
 		resizedQuad[i] = -1 + x*panelWidth
-
-		windowHeight := panelWidth * w.Game.gameBoyAspectRatioMulti * windowAspect
-
 		resizedQuad[i+1] = (1 - windowHeight) + y*windowHeight
 	}
 
-	w.Game.quadVao, w.Game.UVBO = makeVao(resizedQuad, quadUVs)
+	g.quadVao, g.UVBO = makeVao(resizedQuad, quadUVs)
 }
 
-func (g Game) Render(w *Window) {
-	gl.BindVertexArray(w.Game.quadVao)
+func (g *Game) Render() {
+	gl.BindVertexArray(g.quadVao)
 
 	gl.ActiveTexture(gl.TEXTURE0)
-	gl.BindTexture(gl.TEXTURE_2D, w.Game.textureHandle)
+	gl.BindTexture(gl.TEXTURE_2D, g.textureHandle)
 	gl.TexImage2D(
 		gl.TEXTURE_2D,
 		0,
@@ -61,10 +62,10 @@ func (g Game) Render(w *Window) {
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
 }
 
-func (g Game) InitGL(w *Window) {
-	gl.GenTextures(1, &w.Game.textureHandle)
+func (g *Game) InitGL() {
+	gl.GenTextures(1, &g.textureHandle)
 	gl.ActiveTexture(gl.TEXTURE0)
-	gl.BindTexture(gl.TEXTURE_2D, w.Game.textureHandle)
+	gl.BindTexture(gl.TEXTURE_2D, g.textureHandle)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_BASE_LEVEL, 0)
 	gl.TexParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAX_LEVEL, 0)
 	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_MAG_FILTER, gl.NEAREST)
@@ -75,11 +76,11 @@ func (g Game) InitGL(w *Window) {
 	gl.Enable(gl.BLEND)
 	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
-	g.SetupGamePanel(w)
+	g.SetupGamePanel()
 }
 
 func (g Game) OnWindowResize(w *Window) {
-	g.SetupGamePanel(w)
+	g.SetupGamePanel()
 }
 
 var quad = []float32{

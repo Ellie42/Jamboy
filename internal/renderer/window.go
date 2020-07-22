@@ -1,12 +1,13 @@
 package renderer
 
 import (
-	"fmt"
+	gooey "git.agehadev.com/elliebelly/gooey/pkg"
+	"git.agehadev.com/elliebelly/gooey/pkg/window"
+	"git.agehadev.com/elliebelly/gooey/pkg/window/widget"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	_ "image/png"
 	"runtime"
-	"strings"
 	"unsafe"
 )
 
@@ -16,119 +17,107 @@ type Window struct {
 	Initialised     chan bool
 
 	Game Game
+	GUI  *gooey.Gooey
 }
 
-const (
-	vertexShaderSource = `
-    #version 410
+func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint8) {
+	runtime.LockOSThread()
 
-	layout(location = 1) in vec2 vertexUV;
-
-    in vec3 vp;
-
-	out vec2 UV;
-
-    void main() {
-        gl_Position = vec4(vp, 1.0);
-
-		UV = vertexUV;
-    }
-` + "\x00"
-
-	fragmentShaderSource = `
-	#version 410
-
-	in vec2 UV;
-
-	uniform sampler2D tex;
-
-	out vec4 outputColor;
-
-	void main() {
-		outputColor = texture(tex, UV);
-		//outputColor = vec4(UV.x, UV.y,0, 1);
-		//outputColor = vec4(1,1,1,1);
-	}
-` + "\x00"
-)
-
-func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer) {
+	w.Game.Pixels = pixels
 	w.Game.gameBoyAspectRatioMulti = float32(resY) / float32(resX)
-	w.Game.PanelWidth = 0.333333
 	w.Game.ResX = int32(resX)
 	w.Game.ResY = int32(resY)
 	w.Game.pixelsPointer = pixelPointer
 
-	runtime.LockOSThread()
-
-	err := glfw.Init()
+	gui, err := gooey.Init()
 
 	if err != nil {
 		panic(err)
 	}
 
-	glfw.WindowHint(glfw.ContextVersionMajor, 4)
-	glfw.WindowHint(glfw.ContextVersionMinor, 6)
-	glfw.WindowHint(glfw.Resizable, glfw.True)
-	glfw.WindowHint(glfw.OpenGLProfile, glfw.OpenGLCoreProfile)
-	glfw.WindowHint(glfw.OpenGLForwardCompatible, glfw.True)
+	w.GUI = gui
 
-	defer glfw.Terminate()
-
-	w.glfwWindow, err = glfw.CreateWindow(2560, 1440, "Jamboy", nil, nil)
-
-	if err != nil {
-		panic(err)
-	}
-
-	w.glfwWindow.MakeContextCurrent()
-	w.glfwWindow.SetSizeCallback(w.onWindowSetSize)
-
-	if err := gl.Init(); err != nil {
-		panic(fmt.Sprintf("failed to initialise opengl"))
-	}
-
-	w.glProgramHandle = gl.CreateProgram()
-
-	vertexShader, err := compileShader(vertexShaderSource, gl.VERTEX_SHADER)
+	gooeyWindow, err := w.GUI.Window.CreateWindow(window.Preferences{
+		Width:  2560,
+		Height: 1440,
+		Title:  "Jamboy - Getting Gooey",
+		GLFWHints: map[glfw.Hint]int{
+			glfw.Resizable:               glfw.True,
+			glfw.OpenGLProfile:           glfw.OpenGLCoreProfile,
+			glfw.OpenGLForwardCompatible: glfw.True,
+		},
+		OpenedCB: func() {
+			w.Initialised <- true
+		},
+	})
 
 	if err != nil {
 		panic(err)
 	}
 
-	fragmentShader, err := compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
+	gooeyWindow.Layout.Add(
+		widget.NewPanel(
+			NewGameWidget(&w.Game),
+		),
+	)
 
-	if err != nil {
-		panic(err)
-	}
+	w.GUI.Loop()
 
-	gl.AttachShader(w.glProgramHandle, vertexShader)
-	gl.AttachShader(w.glProgramHandle, fragmentShader)
-	gl.LinkProgram(w.glProgramHandle)
-
-	w.Game.InitGL(w)
-
-	gl.ClearColor(0.1, 0.1, 0.2, 1.0)
-
-	go func() {
-		w.Initialised <- true
-	}()
-
-	i := 0
-
-	for !w.glfwWindow.ShouldClose() {
-		gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-
-		gl.UseProgram(w.glProgramHandle)
-
-		w.Game.Render(w)
-
-		w.glfwWindow.SwapBuffers()
-		glfw.PollEvents()
-
-		i++
-		i %= resY
-	}
+	//err := glfw.Init()
+	//
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//w.glfwWindow, err = glfw.CreateWindow(2560, 1440, "Jamboy", nil, nil)
+	//
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//w.glfwWindow.MakeContextCurrent()
+	//w.glfwWindow.SetSizeCallback(w.onWindowSetSize)
+	//
+	//if err := gl.Init(); err != nil {
+	//	panic(fmt.Sprintf("failed to initialise opengl"))
+	//}
+	//
+	//w.glProgramHandle = gl.CreateProgram()
+	//
+	//vertexShader, err := compileShader(vertexShaderSource, gl.VERTEX_SHADER)
+	//
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//fragmentShader, err := compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
+	//
+	//if err != nil {
+	//	panic(err)
+	//}
+	//
+	//gl.AttachShader(w.glProgramHandle, vertexShader)
+	//gl.AttachShader(w.glProgramHandle, fragmentShader)
+	//gl.LinkProgram(w.glProgramHandle)
+	//
+	//w.Game.InitGL(w)
+	//
+	//gl.ClearColor(0.1, 0.1, 0.2, 1.0)
+	//
+	//go func() {
+	//	w.Initialised <- true
+	//}()
+	//
+	//for !w.glfwWindow.ShouldClose() {
+	//	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
+	//
+	//	gl.UseProgram(w.glProgramHandle)
+	//
+	//	w.Game.Render(w)
+	//
+	//	w.glfwWindow.SwapBuffers()
+	//	glfw.PollEvents()
+	//}
 }
 
 
@@ -164,33 +153,10 @@ func makeVao(points []float32, uvs []float32) (vao, uvbo uint32) {
 	return
 }
 
-func compileShader(source string, shaderType uint32) (uint32, error) {
-	shader := gl.CreateShader(shaderType)
-
-	csources, free := gl.Strs(source)
-	gl.ShaderSource(shader, 1, csources, nil)
-	free()
-	gl.CompileShader(shader)
-
-	var status int32
-	gl.GetShaderiv(shader, gl.COMPILE_STATUS, &status)
-	if status == gl.FALSE {
-		var logLength int32
-		gl.GetShaderiv(shader, gl.INFO_LOG_LENGTH, &logLength)
-
-		log := strings.Repeat("\x00", int(logLength+1))
-		gl.GetShaderInfoLog(shader, logLength, nil, gl.Str(log))
-
-		return 0, fmt.Errorf("failed to compile %v: %v", source, log)
-	}
-
-	return shader, nil
-}
-
 func NewWindow() *Window {
-	window := &Window{
+	w := &Window{
 		Initialised: make(chan bool),
 	}
 
-	return window
+	return w
 }
