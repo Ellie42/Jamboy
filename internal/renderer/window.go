@@ -67,6 +67,12 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 			Bottom: 0.01,
 			Left:   0.01,
 		},
+		DimensionBounds: &dimension.Dimensions{
+			Width: &dimension.Size{
+				600,
+				dimension.SizeUnitPixels,
+			},
+		},
 		AlignmentHorizontal: settings.HorizontalMiddle,
 		AlignmentVertical:   settings.VerticalMiddle,
 	},
@@ -76,7 +82,10 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 	gooeyWindow.Layout.AddChild(
 		widget.NewLinearLayout(&settings.WidgetPreferences{},
 			panel,
-			widget.NewPanel(nil),
+			widget.NewPanel(&settings.WidgetPreferences{
+				AlignmentVertical:   settings.VerticalMiddle,
+				AlignmentHorizontal: settings.HorizontalMiddle,
+			}),
 		),
 	)
 
