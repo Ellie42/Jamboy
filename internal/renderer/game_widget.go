@@ -1,9 +1,8 @@
 package renderer
 
 import (
-	"git.agehadev.com/elliebelly/gooey/pkg/dimension"
-	"git.agehadev.com/elliebelly/gooey/pkg/window"
-	"git.agehadev.com/elliebelly/gooey/pkg/window/widget"
+	"git.agehadev.com/elliebelly/gooey/lib/dimension"
+	"git.agehadev.com/elliebelly/gooey/pkg/widget"
 	"github.com/go-gl/gl/v4.6-core/gl"
 )
 
@@ -12,8 +11,7 @@ type GameWidget struct {
 	Game *Game
 }
 
-func (g *GameWidget) Init(parent widget.WidgetParent) {
-	g.Parent = parent
+func (g *GameWidget) Init() {
 	g.Game.InitGL()
 }
 
@@ -28,11 +26,18 @@ func (g GameWidget) Render() {
 	)
 
 	g.Game.Render()
+
+	gl.Viewport(
+		int32(0),
+		int32(0),
+		int32(widget.Context.Resolution.Width),
+		int32(widget.Context.Resolution.Height),
+	)
 }
 
-func calculateViewport(index int, parent widget.WidgetParent) dimension.Rect {
-	parentRect := parent.GetChildRectRelative(index)
-	resolution := window.Context.Resolution
+func calculateViewport(index int, parent widget.Widget) dimension.Rect {
+	parentRect := parent.GetChildRectAbsolute(index)
+	resolution := widget.Context.Resolution
 
 	return dimension.Rect{
 		X:      parentRect.X * float32(resolution.Width),

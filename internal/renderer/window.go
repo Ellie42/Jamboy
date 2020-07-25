@@ -1,9 +1,10 @@
 package renderer
 
 import (
+	"git.agehadev.com/elliebelly/gooey/lib/dimension"
 	gooey "git.agehadev.com/elliebelly/gooey/pkg"
-	"git.agehadev.com/elliebelly/gooey/pkg/window"
-	"git.agehadev.com/elliebelly/gooey/pkg/window/widget"
+	"git.agehadev.com/elliebelly/gooey/pkg/widget"
+	"git.agehadev.com/elliebelly/gooey/pkg/widget/settings"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	_ "image/png"
@@ -37,9 +38,9 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 
 	w.GUI = gui
 
-	gooeyWindow, err := w.GUI.Window.CreateWindow(window.Preferences{
-		Width:  2560,
-		Height: 1440,
+	gooeyWindow, err := w.GUI.Window.CreateWindow(widget.Preferences{
+		Width:  1200,
+		Height: 800,
 		Title:  "Jamboy - Getting Gooey",
 		GLFWHints: map[glfw.Hint]int{
 			glfw.Resizable:               glfw.True,
@@ -55,71 +56,31 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 		panic(err)
 	}
 
-	gooeyWindow.Layout.Add(
-		widget.NewPanel(
-			widget.NewLinearLayout(
-				NewGameWidget(&w.Game),
-			),
+	gooeyWindow.Context.ShowDebug = true
+
+	panel := widget.NewPanel(&settings.WidgetPreferences{
+		FixedRatioAxis: settings.FixedY,
+		FixedRatio:     0.9,
+		Padding: &dimension.DirectionalRect{
+			Top:    0.01,
+			Right:  0.01,
+			Bottom: 0.01,
+			Left:   0.01,
+		},
+		AlignmentHorizontal: settings.HorizontalMiddle,
+		AlignmentVertical:   settings.VerticalMiddle,
+	},
+		NewGameWidget(&w.Game),
+	)
+
+	gooeyWindow.Layout.AddChild(
+		widget.NewLinearLayout(&settings.WidgetPreferences{},
+			panel,
+			widget.NewPanel(nil),
 		),
 	)
 
 	w.GUI.Loop()
-
-	//err := glfw.Init()
-	//
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//w.glfwWindow, err = glfw.CreateWindow(2560, 1440, "Jamboy", nil, nil)
-	//
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//w.glfwWindow.MakeContextCurrent()
-	//w.glfwWindow.SetSizeCallback(w.onWindowSetSize)
-	//
-	//if err := gl.Init(); err != nil {
-	//	panic(fmt.Sprintf("failed to initialise opengl"))
-	//}
-	//
-	//w.glProgramHandle = gl.CreateProgram()
-	//
-	//vertexShader, err := compileShader(vertexShaderSource, gl.VERTEX_SHADER)
-	//
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//fragmentShader, err := compileShader(fragmentShaderSource, gl.FRAGMENT_SHADER)
-	//
-	//if err != nil {
-	//	panic(err)
-	//}
-	//
-	//gl.AttachShader(w.glProgramHandle, vertexShader)
-	//gl.AttachShader(w.glProgramHandle, fragmentShader)
-	//gl.LinkProgram(w.glProgramHandle)
-	//
-	//w.Game.InitGL(w)
-	//
-	//gl.ClearColor(0.1, 0.1, 0.2, 1.0)
-	//
-	//go func() {
-	//	w.Initialised <- true
-	//}()
-	//
-	//for !w.glfwWindow.ShouldClose() {
-	//	gl.Clear(gl.COLOR_BUFFER_BIT | gl.DEPTH_BUFFER_BIT)
-	//
-	//	gl.UseProgram(w.glProgramHandle)
-	//
-	//	w.Game.Render(w)
-	//
-	//	w.glfwWindow.SwapBuffers()
-	//	glfw.PollEvents()
-	//}
 }
 
 
@@ -139,17 +100,17 @@ func makeVao(points []float32, uvs []float32) (vao, uvbo uint32) {
 	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(points), gl.Ptr(points), gl.STATIC_DRAW)
 
+	// Vertex data
 	gl.GenVertexArrays(1, &vao)
 	gl.BindVertexArray(vao)
 	gl.EnableVertexAttribArray(0)
-	gl.BindBuffer(gl.ARRAY_BUFFER, vbo)
 	gl.VertexAttribPointer(0, 3, gl.FLOAT, false, 0, nil)
 
+	// UVData
 	gl.GenBuffers(1, &uvbo)
 	gl.BindBuffer(gl.ARRAY_BUFFER, uvbo)
 	gl.BufferData(gl.ARRAY_BUFFER, 4*len(uvs), gl.Ptr(uvs), gl.STATIC_DRAW)
 	gl.EnableVertexAttribArray(1)
-	gl.BindBuffer(gl.ARRAY_BUFFER, uvbo)
 	gl.VertexAttribPointer(1, 2, gl.FLOAT, false, 0, nil)
 
 	return

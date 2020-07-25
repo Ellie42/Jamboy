@@ -1,6 +1,8 @@
 package renderer
 
 import (
+	"git.agehadev.com/elliebelly/gooey/lib/shader"
+	gooey "git.agehadev.com/elliebelly/gooey/pkg"
 	"github.com/AllenDang/giu"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"image"
@@ -21,7 +23,41 @@ type Game struct {
 	PixelTexure   *giu.Texture
 	PixelImage    *image.RGBA
 	ImageWidget   *giu.ImageWidget
+	shaderProgram uint32
 }
+
+const (
+	vertexShaderSource = `
+    #version 460
+
+    in vec3 vp;
+	in vec2 vertexUV;
+
+	out vec2 UV;
+
+    void main() {
+        gl_Position = vec4(vp, 1.0);
+
+		UV = vertexUV;
+    }
+` + "\x00"
+
+	fragmentShaderSource = `
+	#version 460
+
+	in vec2 UV;
+
+	uniform sampler2D tex;
+
+	out vec4 outputColor;
+
+	void main() {
+		outputColor = texture(tex, UV);
+		//outputColor = vec4(1,1,1,1);
+		//outputColor = vec4(UV.x, UV.y,0, 1);
+	}
+` + "\x00"
+)
 
 func (g *Game) SetupGamePanel() {
 	resizedQuad := make([]float32, len(quad))
@@ -43,6 +79,7 @@ func (g *Game) SetupGamePanel() {
 }
 
 func (g *Game) Render() {
+	gooey.Renderer.SwitchProgram(g.shaderProgram)
 	gl.BindVertexArray(g.quadVao)
 
 	gl.ActiveTexture(gl.TEXTURE0)
@@ -60,9 +97,12 @@ func (g *Game) Render() {
 	)
 
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
+	gooey.Renderer.RestoreProgram()
 }
 
 func (g *Game) InitGL() {
+	g.shaderProgram = shader.CompileProgram(vertexShaderSource, fragmentShaderSource)
+
 	gl.GenTextures(1, &g.textureHandle)
 	gl.ActiveTexture(gl.TEXTURE0)
 	gl.BindTexture(gl.TEXTURE_2D, g.textureHandle)
