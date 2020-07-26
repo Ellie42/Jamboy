@@ -2,9 +2,11 @@ package renderer
 
 import (
 	"git.agehadev.com/elliebelly/gooey/lib/dimension"
+	"git.agehadev.com/elliebelly/gooey/lib/renderer/draw"
 	gooey "git.agehadev.com/elliebelly/gooey/pkg"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget/settings"
+	"git.agehadev.com/elliebelly/gooey/pkg/widget/styles"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	_ "image/png"
@@ -20,6 +22,14 @@ type Window struct {
 	Game Game
 	GUI  *gooey.Gooey
 }
+
+var (
+	ColourBG        = draw.RGBA{0.741, 0.647, 0.608, 1}
+	ColourBGDark    = draw.RGBA{0.741, 0.576, 0.51, 1}
+	ColourBright    = draw.RGBA{0.592, 0.133, 0.129, 1}
+	ColourDark      = draw.RGBA{0.224, 0.125, 0.125, 1}
+	ColourHighlight = draw.RGBA{0.655, 0.322, 0.012, 1}
+)
 
 func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint8) {
 	runtime.LockOSThread()
@@ -59,35 +69,49 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 	gooeyWindow.Context.ShowDebug = true
 
 	panel := widget.NewPanel(&settings.WidgetPreferences{
-		FixedRatioAxis: settings.FixedY,
-		FixedRatio:     0.9,
-		Padding: &dimension.DirectionalRect{
-			Top:    0.01,
-			Right:  0.01,
-			Bottom: 0.01,
-			Left:   0.01,
-		},
-		AlignmentHorizontal: settings.HorizontalMiddle,
+		FixedRatioAxis:      settings.FixedY,
+		FixedRatio:          0.9,
+		AlignmentHorizontal: settings.HorizontalLeft,
 		AlignmentVertical:   settings.VerticalTop,
+		StyleSettings: &styles.StyleSettings{
+			BackgroundColour: &ColourBright,
+		},
+		Padding: &dimension.DirectionalRect{
+			Top:    0.005,
+			Right:  0.005,
+			Bottom: 0.005,
+			Left:   0.005,
+		},
+		DimensionBounds: &dimension.Dimensions{
+			Width: &dimension.Size{
+				400,
+				dimension.SizeUnitPixels,
+			},
+		},
 	},
 		NewGameWidget(&w.Game),
 	)
 
 	gooeyWindow.Layout.AddChild(
-		widget.NewLinearLayout(&settings.WidgetPreferences{},
-			widget.NewLinearLayout(&settings.WidgetPreferences{
-				DimensionBounds: &dimension.Dimensions{
-					Width: &dimension.Size{
-						600,
-						dimension.SizeUnitPixels,
-					},
-				},
-			}, panel),
+		//widget.NewLinearLayout(&settings.WidgetPreferences{
+		//	StyleSettings: &styles.StyleSettings{BackgroundColour: &ColourBG},
+		//},
+		widget.NewLinearLayout(&settings.WidgetPreferences{
+			Padding: &dimension.DirectionalRect{
+				Top:    0.01,
+				Right:  0.01,
+				Bottom: 0.01,
+				Left:   0.01,
+			},
+		},
+			panel,
 			widget.NewPanel(&settings.WidgetPreferences{
 				AlignmentVertical:   settings.VerticalMiddle,
 				AlignmentHorizontal: settings.HorizontalMiddle,
+				StyleSettings:       &styles.StyleSettings{BackgroundColour: &ColourBGDark},
 			}),
 		),
+		//),
 	)
 
 	w.GUI.Loop()
