@@ -67,21 +67,22 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 			Bottom: 0.01,
 			Left:   0.01,
 		},
-		DimensionBounds: &dimension.Dimensions{
-			Width: &dimension.Size{
-				600,
-				dimension.SizeUnitPixels,
-			},
-		},
 		AlignmentHorizontal: settings.HorizontalMiddle,
-		AlignmentVertical:   settings.VerticalMiddle,
+		AlignmentVertical:   settings.VerticalTop,
 	},
 		NewGameWidget(&w.Game),
 	)
 
 	gooeyWindow.Layout.AddChild(
 		widget.NewLinearLayout(&settings.WidgetPreferences{},
-			panel,
+			widget.NewLinearLayout(&settings.WidgetPreferences{
+				DimensionBounds: &dimension.Dimensions{
+					Width: &dimension.Size{
+						600,
+						dimension.SizeUnitPixels,
+					},
+				},
+			}, panel),
 			widget.NewPanel(&settings.WidgetPreferences{
 				AlignmentVertical:   settings.VerticalMiddle,
 				AlignmentHorizontal: settings.HorizontalMiddle,
