@@ -2,8 +2,8 @@ package renderer
 
 import (
 	"git.agehadev.com/elliebelly/gooey/lib/dimension"
-	"git.agehadev.com/elliebelly/gooey/lib/renderer/draw"
 	gooey "git.agehadev.com/elliebelly/gooey/pkg"
+	"git.agehadev.com/elliebelly/gooey/pkg/draw"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget/settings"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget/styles"
@@ -24,11 +24,15 @@ type Window struct {
 }
 
 var (
-	ColourBG        = draw.RGBA{0.741, 0.647, 0.608, 1}
-	ColourBGDark    = draw.RGBA{0.741, 0.576, 0.51, 1}
-	ColourBright    = draw.RGBA{0.592, 0.133, 0.129, 1}
-	ColourDark      = draw.RGBA{0.224, 0.125, 0.125, 1}
-	ColourHighlight = draw.RGBA{0.655, 0.322, 0.012, 1}
+	ColourBGGrey     = draw.NewRGBAFromHex("37505C")
+	ColourBGGreyDark = draw.NewRGBAFromHex("1E3440")
+	ColourBGPink     = draw.RGBA{0.741, 0.647, 0.608, 1}
+	ColourBGPinkDark = draw.RGBA{0.741, 0.576, 0.51, 1}
+	ColourPaleRed    = draw.NewRGBAFromHex("A14643")
+	ColourPalerRed    = draw.NewRGBAFromHex("B25D5A")
+	ColourBrightRed  = draw.RGBA{0.592, 0.133, 0.129, 1}
+	ColourDarkRed    = draw.RGBA{0.224, 0.125, 0.125, 1}
+	ColourHighlight  = draw.RGBA{0.655, 0.322, 0.012, 1}
 )
 
 func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint8) {
@@ -48,7 +52,7 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 
 	w.GUI = gui
 
-	gooeyWindow, err := w.GUI.Window.CreateWindow(widget.Preferences{
+	gooeyWindow, err := w.GUI.Window.CreateWindow(widget.WindowPreferences{
 		Width:  1200,
 		Height: 800,
 		Title:  "Jamboy - Getting Gooey",
@@ -66,7 +70,13 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 		panic(err)
 	}
 
-	gooeyWindow.Context.ShowDebug = true
+	gooeyWindow.Context.ShowDebug = false
+
+	gooeyWindow.Layout = widget.NewFreeLayout(
+		&settings.WidgetPreferences{
+			StyleSettings: &styles.StyleSettings{BackgroundColour: &ColourBrightRed},
+		},
+	)
 
 	panel := widget.NewPanel(&settings.WidgetPreferences{
 		FixedRatioAxis:      settings.FixedY,
@@ -74,7 +84,7 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 		AlignmentHorizontal: settings.HorizontalLeft,
 		AlignmentVertical:   settings.VerticalTop,
 		StyleSettings: &styles.StyleSettings{
-			BackgroundColour: &ColourBright,
+			BackgroundColour: &ColourBrightRed,
 		},
 		Padding: &dimension.DirectionalRect{
 			Top:    0.005,
@@ -93,38 +103,17 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 	)
 
 	gooeyWindow.Layout.AddChild(
-		//widget.NewLinearLayout(&settings.WidgetPreferences{
-		//	StyleSettings: &styles.StyleSettings{BackgroundColour: &ColourBG},
-		//},
 		widget.NewLinearLayout(&settings.WidgetPreferences{
-			Padding: &dimension.DirectionalRect{
-				Top:    0.01,
-				Right:  0.01,
-				Bottom: 0.01,
-				Left:   0.01,
-			},
+			Padding: &dimension.DirectionalRect{0.01, 0.01, 0.01, 0.01},
 		},
 			panel,
-			widget.NewPanel(&settings.WidgetPreferences{
-				AlignmentVertical:   settings.VerticalMiddle,
-				AlignmentHorizontal: settings.HorizontalMiddle,
-				StyleSettings:       &styles.StyleSettings{BackgroundColour: &ColourBGDark},
-			}),
+			widget.NewPanel(nil,
+				GetCodeListWidget(),
+			),
 		),
-		//),
 	)
 
 	w.GUI.Loop()
-}
-
-
-func (w *Window) Close() {
-	w.glfwWindow.SetShouldClose(true)
-}
-
-func (w *Window) onWindowSetSize(glfwWindow *glfw.Window, width int, height int) {
-	gl.Viewport(0, 0, int32(width), int32(height))
-	w.Game.OnWindowResize(w)
 }
 
 // makeVao initializes and returns a vertex array from the points provided.

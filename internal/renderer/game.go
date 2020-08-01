@@ -2,7 +2,7 @@ package renderer
 
 import (
 	"git.agehadev.com/elliebelly/gooey/lib/shader"
-	gooey "git.agehadev.com/elliebelly/gooey/pkg"
+	"git.agehadev.com/elliebelly/gooey/pkg/draw"
 	"github.com/AllenDang/giu"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"image"
@@ -53,8 +53,6 @@ const (
 
 	void main() {
 		outputColor = texture(tex, UV);
-		//outputColor = vec4(1,1,1,1);
-		//outputColor = vec4(UV.x, UV.y,0, 1);
 	}
 ` + "\x00"
 )
@@ -79,7 +77,10 @@ func (g *Game) SetupGamePanel() {
 }
 
 func (g *Game) Render() {
-	gooey.Renderer.SwitchProgram(g.shaderProgram)
+	gl.Enable(gl.BLEND)
+	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
+
+	draw.SwitchProgram(g.shaderProgram)
 	gl.BindVertexArray(g.quadVao)
 
 	gl.ActiveTexture(gl.TEXTURE0)
@@ -97,7 +98,7 @@ func (g *Game) Render() {
 	)
 
 	gl.DrawArrays(gl.TRIANGLES, 0, int32(len(quad)/3))
-	gooey.Renderer.RestoreProgram()
+	draw.RestoreGLOptions()
 }
 
 func (g *Game) InitGL() {
@@ -112,9 +113,6 @@ func (g *Game) InitGL() {
 	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_MIN_FILTER, gl.NEAREST)
 	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_S, gl.NEAREST)
 	gl.TextureParameteri(gl.TEXTURE_2D, gl.TEXTURE_WRAP_T, gl.NEAREST)
-
-	gl.Enable(gl.BLEND)
-	gl.BlendFunc(gl.SRC_ALPHA, gl.ONE_MINUS_SRC_ALPHA)
 
 	g.SetupGamePanel()
 }
