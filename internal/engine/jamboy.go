@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"git.agehadev.com/elliebelly/jamboy/internal"
 	"reflect"
 	"runtime"
 	"strings"
@@ -10,8 +11,9 @@ import (
 type Jamboy struct {
 	CPU  *CPU
 	GPU  *GPU
-	Cart *Cart
+	Cart *internal.Cart
 	MMU  *MMU
+	Code *Code
 
 	OutputDebug   bool
 	IsHalted      bool
@@ -20,7 +22,7 @@ type Jamboy struct {
 	LoopBoot      bool
 }
 
-func (j *Jamboy) InsertCartridge(cart *Cart) {
+func (j *Jamboy) InsertCartridge(cart *internal.Cart) {
 	j.Cart = cart
 }
 
@@ -32,6 +34,7 @@ func (j *Jamboy) PowerOn(bootROMdata []byte) {
 	j.CPU.Reset()
 	j.MMU.Reset()
 	j.GPU.Reset()
+	j.Code.Reset()
 
 	if bootROMdata != nil {
 		j.CPU.LoadBootRom(bootROMdata)
@@ -152,6 +155,7 @@ func NewJamboy() *Jamboy {
 	jb.MMU = newMMU(jb)
 	jb.CPU = NewCPU(jb)
 	jb.GPU = NewGPU(jb)
+	jb.Code = NewCode(jb)
 
 	return jb
 }

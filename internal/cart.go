@@ -1,7 +1,6 @@
-package engine
+package internal
 
 import (
-	"git.agehadev.com/elliebelly/jamboy/internal"
 	"go.uber.org/zap"
 	"os"
 )
@@ -32,7 +31,7 @@ func (c *Cart) Load() error {
 		return err
 	}
 
-	internal.Logger.Info("loaded cartridge", zap.Int("bytes", count))
+	Logger.Info("loaded cartridge", zap.Int("bytes", count))
 
 	return nil
 }

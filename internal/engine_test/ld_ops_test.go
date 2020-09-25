@@ -3,6 +3,7 @@ package engine
 import (
 	"encoding/binary"
 	"fmt"
+	"git.agehadev.com/elliebelly/jamboy/internal"
 	"git.agehadev.com/elliebelly/jamboy/internal/engine"
 	"github.com/stretchr/testify/assert"
 	"testing"
@@ -139,8 +140,8 @@ func TestLD(t *testing.T) {
 	}
 }
 
-func newTestJamboy() (*engine.Cart, *engine.Jamboy) {
-	cart := &engine.Cart{
+func newTestJamboy() (*internal.Cart, *engine.Jamboy) {
+	cart := &internal.Cart{
 		Data: make([]byte, 0x100),
 	}
 

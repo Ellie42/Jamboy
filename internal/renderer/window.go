@@ -7,6 +7,7 @@ import (
 	"git.agehadev.com/elliebelly/gooey/pkg/widget"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget/settings"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget/styles"
+	"git.agehadev.com/elliebelly/jamboy/internal/engine"
 	"github.com/go-gl/gl/v4.6-core/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	_ "image/png"
@@ -24,18 +25,19 @@ type Window struct {
 }
 
 var (
-	ColourBGGrey     = draw.NewRGBAFromHex("37505C")
-	ColourBGGreyDark = draw.NewRGBAFromHex("1E3440")
-	ColourBGPink     = draw.RGBA{0.741, 0.647, 0.608, 1}
-	ColourBGPinkDark = draw.RGBA{0.741, 0.576, 0.51, 1}
-	ColourPaleRed    = draw.NewRGBAFromHex("A14643")
+	ColourBGGrey      = draw.NewRGBAFromHex("37505C")
+	ColourBGGreyLight = draw.NewRGBAFromHex("49626E")
+	ColourBGGreyDark  = draw.NewRGBAFromHex("1E3440")
+	ColourBGPink      = draw.RGBA{0.741, 0.647, 0.608, 1}
+	ColourBGPinkDark  = draw.RGBA{0.741, 0.576, 0.51, 1}
+	ColourPaleRed     = draw.NewRGBAFromHex("A14643")
 	ColourPalerRed    = draw.NewRGBAFromHex("B25D5A")
-	ColourBrightRed  = draw.RGBA{0.592, 0.133, 0.129, 1}
-	ColourDarkRed    = draw.RGBA{0.224, 0.125, 0.125, 1}
-	ColourHighlight  = draw.RGBA{0.655, 0.322, 0.012, 1}
+	ColourBrightRed   = draw.RGBA{0.592, 0.133, 0.129, 1}
+	ColourDarkRed     = draw.RGBA{0.224, 0.125, 0.125, 1}
+	ColourHighlight   = draw.RGBA{0.655, 0.322, 0.012, 1}
 )
 
-func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint8) {
+func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint8, jamboy *engine.Jamboy) {
 	runtime.LockOSThread()
 
 	w.Game.Pixels = pixels
@@ -70,7 +72,7 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 		panic(err)
 	}
 
-	gooeyWindow.Context.ShowDebug = false
+	gooeyWindow.Context.ShowDebug = true
 
 	gooeyWindow.Layout = widget.NewFreeLayout(
 		&settings.WidgetPreferences{
@@ -86,11 +88,11 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 		StyleSettings: &styles.StyleSettings{
 			BackgroundColour: &ColourBrightRed,
 		},
-		Padding: &dimension.DirectionalRect{
-			Top:    0.005,
-			Right:  0.005,
-			Bottom: 0.005,
-			Left:   0.005,
+		Padding: &dimension.DirectionalRectSized{
+			dimension.Size{0, dimension.SizeUnitPixels},
+			dimension.Size{0, dimension.SizeUnitPixels},
+			dimension.Size{0, dimension.SizeUnitPixels},
+			dimension.Size{0, dimension.SizeUnitPixels},
 		},
 		DimensionBounds: &dimension.Dimensions{
 			Width: &dimension.Size{
@@ -104,11 +106,16 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 
 	gooeyWindow.Layout.AddChild(
 		widget.NewLinearLayout(&settings.WidgetPreferences{
-			Padding: &dimension.DirectionalRect{0.01, 0.01, 0.01, 0.01},
+			Padding: &dimension.DirectionalRectSized{
+				dimension.Size{0.01, dimension.SizeUnitRatio},
+				dimension.Size{0.01, dimension.SizeUnitRatio},
+				dimension.Size{0.01, dimension.SizeUnitRatio},
+				dimension.Size{0.01, dimension.SizeUnitRatio},
+			},
 		},
 			panel,
 			widget.NewPanel(nil,
-				GetCodeListWidget(),
+				NewCodeListWidget(jamboy),
 			),
 		),
 	)

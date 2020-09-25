@@ -63,7 +63,7 @@ func main() {
 		os.Exit(1)
 	}
 
-	cart := &engine.Cart{
+	cart := &internal.Cart{
 		Path: *cartPath,
 	}
 
@@ -95,13 +95,13 @@ func main() {
 		go runJamboy(jamboy, outputDebug, bootROMPath, cart, loopBoot, dump, dumpLine, done)
 	}()
 
-	window.Open(engine.ResolutionX, engine.ResolutionY, unsafe.Pointer(&pixels[0]), pixels)
+	window.Open(engine.ResolutionX, engine.ResolutionY, unsafe.Pointer(&pixels[0]), pixels, jamboy)
 
 	jamboy.PowerOff()
 	EmulationFinished = true
 }
 
-func runJamboy(jamboy *engine.Jamboy, outputDebug *bool, bootROMPath *string, cart *engine.Cart, loopBoot *bool, dump *string, dumpLine uint16, done chan bool) {
+func runJamboy(jamboy *engine.Jamboy, outputDebug *bool, bootROMPath *string, cart *internal.Cart, loopBoot *bool, dump *string, dumpLine uint16, done chan bool) {
 	if outputDebug != nil {
 		jamboy.OutputDebug = *outputDebug
 	}

@@ -1,84 +1,61 @@
 package renderer
 
 import (
-	"fmt"
 	"git.agehadev.com/elliebelly/gooey/lib/dimension"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget/settings"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget/styles"
 )
 
-type CodeListContentWidgetConfig struct {
-	widget                  widget.Widget
-	byteNumberTextWidget    *widget.Text
-	commandStringTextWidget *widget.Text
-	byteNumber              int
+type CodeListContentWidget struct {
+	widget.LinearLayout
+	widgetListItem          *widget.WidgetListItem
+	ByteNumberTextWidget    *widget.Text
+	CommandStringTextWidget *widget.Text
 }
 
-type CodeListContentProvider struct {
-	widgets            map[int]*CodeListContentWidgetConfig
-	WidgetDataProvider *CodeListDataProvider
-}
-
-func (c *CodeListContentProvider) InitListItem(w *widget.WidgetListItem) {
-	index := w.GetIndex()
-
-	if c.widgets == nil {
-		c.widgets = make(map[int]*CodeListContentWidgetConfig)
+func NewCodeListContentWidget(wli *widget.WidgetListItem) *CodeListContentWidget {
+	cl := &CodeListContentWidget{
+		widgetListItem: wli,
 	}
 
-	var ok bool
+	cl.FitToChildren = true
 
-	if _, ok = c.widgets[index]; ok {
-		return
-	}
+	cl.Rect = dimension.Rect{0, 0, 1, 1}
 
 	leftPanelStyle := settings.WidgetPreferences{
-		Padding: &dimension.DirectionalRect{
-			Left:   0.1,
+		Padding: &dimension.DirectionalRectSized{
+			Left: dimension.Size{0.1, dimension.SizeUnitPixels},
 		},
 		DimensionBounds: &dimension.Dimensions{
 			Width: &dimension.Size{
-				Amount: 100,
-				Unit:   dimension.SizeUnitPixels,
+				Amount: 65,
 			},
 		},
 		StyleSettings: &styles.StyleSettings{
-			BackgroundColour: &ColourBGGrey,
+			BackgroundColour: &ColourBGGreyLight,
 		},
 	}
 
-	byteNumberTextWidget := widget.NewTextWidget(nil)
-	commandStringTextWidget := widget.NewTextWidget(nil)
-
-	c.widgets[index] = &CodeListContentWidgetConfig{
-		widget: widget.NewLinearLayout(
-			nil,
-			widget.NewPanel(&leftPanelStyle, byteNumberTextWidget),
-			widget.NewPanel(nil, commandStringTextWidget),
-		),
-		byteNumberTextWidget:    byteNumberTextWidget,
-		commandStringTextWidget: commandStringTextWidget,
+	rightPanelStyle := settings.WidgetPreferences{
+		AlignmentHorizontal: settings.HorizontalLeft,
+		Padding: &dimension.DirectionalRectSized{
+			Left: dimension.Size{32, dimension.SizeUnitPixels},
+		},
+		//StyleSettings: &styles.StyleSettings{
+		//	BackgroundColour: &ColourBGPink,
+		//},
 	}
 
-	c.widgets[index].widget.SetParent(w)
-	c.widgets[index].widget.Init()
-}
+	cl.ByteNumberTextWidget = widget.NewTextWidget(nil)
+	cl.CommandStringTextWidget = widget.NewTextWidget(&settings.WidgetPreferences{
+		AlignmentHorizontal: settings.HorizontalLeft,
+	})
 
-func (c *CodeListContentProvider) RenderListItem(w *widget.WidgetListItem) {
-	wConfig := c.widgets[w.GetIndex()]
-	data := c.WidgetDataProvider.Provide(w.GetIndex())
+	cl.AddChildWithParent(cl,
+		widget.NewPanel(&leftPanelStyle, cl.ByteNumberTextWidget),
+		widget.NewPanel(&rightPanelStyle, cl.CommandStringTextWidget),
+	)
 
-	wConfig.byteNumberTextWidget.Text = fmt.Sprintf("0x%04x", data.byteNumber)
-	wConfig.commandStringTextWidget.Text = data.commandText
-
-	c.widgets[w.GetIndex()].widget.Render()
-}
-
-func NewCodeListContentProvider(dataProvider *CodeListDataProvider) *CodeListContentProvider {
-	c := &CodeListContentProvider{
-		WidgetDataProvider: dataProvider,
-	}
-
-	return c
+	return cl
 }

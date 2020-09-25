@@ -1,5 +1,7 @@
 package engine
 
+import "sync"
+
 type MemoryRange struct {
 	From Address
 	To   Address
@@ -79,6 +81,8 @@ func (a Address) InRange(r MemoryRange) bool {
 type MMU struct {
 	Jamboy *Jamboy
 	RAM    [0x10000]byte
+
+	sync.RWMutex
 }
 
 func (m *MMU) Reset() {
@@ -120,6 +124,9 @@ func (m *MMU) Reset() {
 }
 
 func (m *MMU) Write(addr Address, i byte) {
+	m.Lock()
+	defer m.Unlock()
+
 	m.Jamboy.CPU.Wait(1)
 
 	if addr.InRange(VRAM) {
@@ -136,6 +143,9 @@ func (m *MMU) Read(addr Address) byte {
 }
 
 func (m *MMU) ReadInstant(addr Address) byte {
+	m.RLock()
+	defer m.RUnlock()
+
 	if m.Jamboy.CPU.IsBooting && addr < 0x0100 {
 		return m.RAM[addr]
 	}
