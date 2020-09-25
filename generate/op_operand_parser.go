@@ -78,7 +78,7 @@ func main() {
 			CodeHex: hex.EncodeToString(codeByteBuffer),
 		}
 
-		if len(splitOp) > 1 {
+		if len(splitOp) > 1 && name != "PREFIX" {
 			splitOperands := strings.Split(splitOp[1], ",")
 
 			opTemplateData.Operands = make([]code.Operand, 0)
