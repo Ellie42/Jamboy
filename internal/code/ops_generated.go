@@ -2,6 +2,10 @@ package code
 
 var (
 	Ops = map[int]Op{
+		0x0000: {
+			Type: OpNOP,
+			Code: 0x0000,
+		},
 		0x0001: {
 			Type: OpLD,
 			Code: 0x0001,
@@ -73,6 +77,10 @@ var (
 					Type:     RetrieveVal,
 				},
 			},
+		},
+		0x0007: {
+			Type: OpRLCA,
+			Code: 0x0007,
 		},
 		0x0008: {
 			Type: OpLD,
@@ -160,6 +168,10 @@ var (
 				},
 			},
 		},
+		0x000f: {
+			Type: OpRRCA,
+			Code: 0x000f,
+		},
 		0x0010: {
 			Type: OpSTOP,
 			Code: 0x0010,
@@ -242,6 +254,10 @@ var (
 				},
 			},
 		},
+		0x0017: {
+			Type: OpRLA,
+			Code: 0x0017,
+		},
 		0x0018: {
 			Type: OpJR,
 			Code: 0x0018,
@@ -323,6 +339,10 @@ var (
 					Type:     RetrieveVal,
 				},
 			},
+		},
+		0x001f: {
+			Type: OpRRA,
+			Code: 0x001f,
 		},
 		0x0020: {
 			Type: OpJR,
@@ -410,6 +430,10 @@ var (
 				},
 			},
 		},
+		0x0027: {
+			Type: OpDAA,
+			Code: 0x0027,
+		},
 		0x0028: {
 			Type: OpJR,
 			Code: 0x0028,
@@ -495,6 +519,10 @@ var (
 					Type:     RetrieveVal,
 				},
 			},
+		},
+		0x002f: {
+			Type: OpCPL,
+			Code: 0x002f,
 		},
 		0x0030: {
 			Type: OpJR,
@@ -582,6 +610,10 @@ var (
 				},
 			},
 		},
+		0x0037: {
+			Type: OpSCF,
+			Code: 0x0037,
+		},
 		0x0038: {
 			Type: OpJR,
 			Code: 0x0038,
@@ -667,6 +699,10 @@ var (
 					Type:     RetrieveVal,
 				},
 			},
+		},
+		0x003f: {
+			Type: OpCCF,
+			Code: 0x003f,
 		},
 		0x0040: {
 			Type: OpLD,
@@ -1423,6 +1459,10 @@ var (
 					Type:     RetrieveVal,
 				},
 			},
+		},
+		0x0076: {
+			Type: OpHALT,
+			Code: 0x0076,
 		},
 		0x0077: {
 			Type: OpLD,
@@ -2388,6 +2428,10 @@ var (
 				},
 			},
 		},
+		0x00c9: {
+			Type: OpRET,
+			Code: 0x00c9,
+		},
 		0x00ca: {
 			Type: OpJP,
 			Code: 0x00ca,
@@ -2494,6 +2538,10 @@ var (
 				},
 			},
 		},
+		0x00d3: {
+			Type: OpNOP,
+			Code: 0x00d3,
+		},
 		0x00d4: {
 			Type: OpCALL,
 			Code: 0x00d4,
@@ -2548,6 +2596,10 @@ var (
 				},
 			},
 		},
+		0x00d9: {
+			Type: OpRETI,
+			Code: 0x00d9,
+		},
 		0x00da: {
 			Type: OpJP,
 			Code: 0x00da,
@@ -2562,6 +2614,10 @@ var (
 				},
 			},
 		},
+		0x00db: {
+			Type: OpNOP,
+			Code: 0x00db,
+		},
 		0x00dc: {
 			Type: OpCALL,
 			Code: 0x00dc,
@@ -2575,6 +2631,10 @@ var (
 					Type:     RetrieveVal,
 				},
 			},
+		},
+		0x00dd: {
+			Type: OpNOP,
+			Code: 0x00dd,
 		},
 		0x00de: {
 			Type: OpSBC,
@@ -2637,6 +2697,14 @@ var (
 					Type:     RetrieveVal,
 				},
 			},
+		},
+		0x00e3: {
+			Type: OpNOP,
+			Code: 0x00e3,
+		},
+		0x00e4: {
+			Type: OpNOP,
+			Code: 0x00e4,
 		},
 		0x00e5: {
 			Type: OpPUSH,
@@ -2706,6 +2774,18 @@ var (
 				},
 			},
 		},
+		0x00eb: {
+			Type: OpNOP,
+			Code: 0x00eb,
+		},
+		0x00ec: {
+			Type: OpNOP,
+			Code: 0x00ec,
+		},
+		0x00ed: {
+			Type: OpNOP,
+			Code: 0x00ed,
+		},
 		0x00ee: {
 			Type: OpXOR,
 			Code: 0x00ee,
@@ -2764,18 +2844,16 @@ var (
 				},
 			},
 		},
+		0x00f3: {
+			Type: OpDI,
+			Code: 0x00f3,
+		},
 		0x00f4: {
-			Type: OpPUSH,
+			Type: OpNOP,
 			Code: 0x00f4,
-			Operands: []Operand{
-				{
-					Location: ValA,
-					Type:     RetrieveVal,
-				},
-			},
 		},
 		0x00f5: {
-			Type: OpOR,
+			Type: OpPUSH,
 			Code: 0x00f5,
 			Operands: []Operand{
 				{
@@ -2785,7 +2863,7 @@ var (
 			},
 		},
 		0x00f6: {
-			Type: OpRST,
+			Type: OpOR,
 			Code: 0x00f6,
 			Operands: []Operand{
 				{
@@ -2795,13 +2873,9 @@ var (
 			},
 		},
 		0x00f7: {
-			Type: OpLD,
+			Type: OpRST,
 			Code: 0x00f7,
 			Operands: []Operand{
-				{
-					Location: ValA,
-					Type:     RetrieveVal,
-				},
 				{
 					Location: ValA,
 					Type:     RetrieveVal,
@@ -2832,42 +2906,38 @@ var (
 				},
 				{
 					Location: ValA,
+					Type:     RetrieveVal,
+				},
+			},
+		},
+		0x00fa: {
+			Type: OpLD,
+			Code: 0x00fa,
+			Operands: []Operand{
+				{
+					Location: ValA,
+					Type:     RetrieveVal,
+				},
+				{
+					Location: ValA,
 					Type:     RetrievePointer,
 				},
 			},
 		},
 		0x00fb: {
-			Type: OpCP,
+			Type: OpEI,
 			Code: 0x00fb,
-			Operands: []Operand{
-				{
-					Location: ValA,
-					Type:     RetrieveVal,
-				},
-			},
 		},
 		0x00fc: {
-			Type: OpRST,
+			Type: OpNOP,
 			Code: 0x00fc,
-			Operands: []Operand{
-				{
-					Location: ValA,
-					Type:     RetrieveVal,
-				},
-			},
 		},
 		0x00fd: {
-			Type: OpPrefix,
+			Type: OpNOP,
 			Code: 0x00fd,
-			Operands: []Operand{
-				{
-					Location: ValA,
-					Type:     RetrieveVal,
-				},
-			},
 		},
 		0x00fe: {
-			Type: OpRLC,
+			Type: OpCP,
 			Code: 0x00fe,
 			Operands: []Operand{
 				{
@@ -2877,7 +2947,7 @@ var (
 			},
 		},
 		0x00ff: {
-			Type: OpRLC,
+			Type: OpRST,
 			Code: 0x00ff,
 			Operands: []Operand{
 				{
@@ -2887,7 +2957,7 @@ var (
 			},
 		},
 		0x0100: {
-			Type: OpRLC,
+			Type: OpPrefix,
 			Code: 0x0100,
 			Operands: []Operand{
 				{
@@ -2932,7 +3002,7 @@ var (
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -2947,7 +3017,7 @@ var (
 			},
 		},
 		0x0106: {
-			Type: OpRRC,
+			Type: OpRLC,
 			Code: 0x0106,
 			Operands: []Operand{
 				{
@@ -2957,17 +3027,17 @@ var (
 			},
 		},
 		0x0107: {
-			Type: OpRRC,
+			Type: OpRLC,
 			Code: 0x0107,
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
 		0x0108: {
-			Type: OpRRC,
+			Type: OpRLC,
 			Code: 0x0108,
 			Operands: []Operand{
 				{
@@ -3012,7 +3082,7 @@ var (
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -3027,7 +3097,7 @@ var (
 			},
 		},
 		0x010e: {
-			Type: OpRL,
+			Type: OpRRC,
 			Code: 0x010e,
 			Operands: []Operand{
 				{
@@ -3037,17 +3107,17 @@ var (
 			},
 		},
 		0x010f: {
-			Type: OpRL,
+			Type: OpRRC,
 			Code: 0x010f,
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
 		0x0110: {
-			Type: OpRL,
+			Type: OpRRC,
 			Code: 0x0110,
 			Operands: []Operand{
 				{
@@ -3092,7 +3162,7 @@ var (
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -3107,7 +3177,7 @@ var (
 			},
 		},
 		0x0116: {
-			Type: OpRR,
+			Type: OpRL,
 			Code: 0x0116,
 			Operands: []Operand{
 				{
@@ -3117,17 +3187,17 @@ var (
 			},
 		},
 		0x0117: {
-			Type: OpRR,
+			Type: OpRL,
 			Code: 0x0117,
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
 		0x0118: {
-			Type: OpRR,
+			Type: OpRL,
 			Code: 0x0118,
 			Operands: []Operand{
 				{
@@ -3172,7 +3242,7 @@ var (
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -3187,7 +3257,7 @@ var (
 			},
 		},
 		0x011e: {
-			Type: OpSLA,
+			Type: OpRR,
 			Code: 0x011e,
 			Operands: []Operand{
 				{
@@ -3197,17 +3267,17 @@ var (
 			},
 		},
 		0x011f: {
-			Type: OpSLA,
+			Type: OpRR,
 			Code: 0x011f,
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
 		0x0120: {
-			Type: OpSLA,
+			Type: OpRR,
 			Code: 0x0120,
 			Operands: []Operand{
 				{
@@ -3252,7 +3322,7 @@ var (
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -3267,7 +3337,7 @@ var (
 			},
 		},
 		0x0126: {
-			Type: OpSRA,
+			Type: OpSLA,
 			Code: 0x0126,
 			Operands: []Operand{
 				{
@@ -3277,17 +3347,17 @@ var (
 			},
 		},
 		0x0127: {
-			Type: OpSRA,
+			Type: OpSLA,
 			Code: 0x0127,
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
 		0x0128: {
-			Type: OpSRA,
+			Type: OpSLA,
 			Code: 0x0128,
 			Operands: []Operand{
 				{
@@ -3332,7 +3402,7 @@ var (
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -3347,7 +3417,7 @@ var (
 			},
 		},
 		0x012e: {
-			Type: OpSWAP,
+			Type: OpSRA,
 			Code: 0x012e,
 			Operands: []Operand{
 				{
@@ -3357,17 +3427,17 @@ var (
 			},
 		},
 		0x012f: {
-			Type: OpSWAP,
+			Type: OpSRA,
 			Code: 0x012f,
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
 		0x0130: {
-			Type: OpSWAP,
+			Type: OpSRA,
 			Code: 0x0130,
 			Operands: []Operand{
 				{
@@ -3412,7 +3482,7 @@ var (
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -3427,7 +3497,7 @@ var (
 			},
 		},
 		0x0136: {
-			Type: OpSRL,
+			Type: OpSWAP,
 			Code: 0x0136,
 			Operands: []Operand{
 				{
@@ -3437,17 +3507,17 @@ var (
 			},
 		},
 		0x0137: {
-			Type: OpSRL,
+			Type: OpSWAP,
 			Code: 0x0137,
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
 		0x0138: {
-			Type: OpSRL,
+			Type: OpSWAP,
 			Code: 0x0138,
 			Operands: []Operand{
 				{
@@ -3492,7 +3562,7 @@ var (
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -3507,13 +3577,9 @@ var (
 			},
 		},
 		0x013e: {
-			Type: OpBIT,
+			Type: OpSRL,
 			Code: 0x013e,
 			Operands: []Operand{
-				{
-					Location: ValA,
-					Type:     RetrieveVal,
-				},
 				{
 					Location: ValA,
 					Type:     RetrieveVal,
@@ -3521,27 +3587,19 @@ var (
 			},
 		},
 		0x013f: {
-			Type: OpBIT,
+			Type: OpSRL,
 			Code: 0x013f,
 			Operands: []Operand{
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
-				},
-				{
-					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
 		0x0140: {
-			Type: OpBIT,
+			Type: OpSRL,
 			Code: 0x0140,
 			Operands: []Operand{
-				{
-					Location: ValA,
-					Type:     RetrieveVal,
-				},
 				{
 					Location: ValA,
 					Type:     RetrieveVal,
@@ -3600,7 +3658,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -3642,7 +3700,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -3712,7 +3770,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -3754,7 +3812,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -3824,7 +3882,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -3866,7 +3924,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -3936,7 +3994,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -3978,7 +4036,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -4048,7 +4106,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -4090,7 +4148,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -4160,7 +4218,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -4202,7 +4260,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -4272,7 +4330,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -4314,7 +4372,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -4384,7 +4442,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -4403,7 +4461,7 @@ var (
 			},
 		},
 		0x017e: {
-			Type: OpRES,
+			Type: OpBIT,
 			Code: 0x017e,
 			Operands: []Operand{
 				{
@@ -4417,7 +4475,7 @@ var (
 			},
 		},
 		0x017f: {
-			Type: OpRES,
+			Type: OpBIT,
 			Code: 0x017f,
 			Operands: []Operand{
 				{
@@ -4426,12 +4484,12 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
 		0x0180: {
-			Type: OpRES,
+			Type: OpBIT,
 			Code: 0x0180,
 			Operands: []Operand{
 				{
@@ -4496,7 +4554,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -4538,7 +4596,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -4608,7 +4666,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -4650,7 +4708,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -4720,7 +4778,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -4762,7 +4820,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -4832,7 +4890,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -4874,7 +4932,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -4944,7 +5002,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -4986,7 +5044,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -5056,7 +5114,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -5098,7 +5156,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -5168,7 +5226,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -5210,7 +5268,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -5280,7 +5338,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -5299,7 +5357,7 @@ var (
 			},
 		},
 		0x01be: {
-			Type: OpSET,
+			Type: OpRES,
 			Code: 0x01be,
 			Operands: []Operand{
 				{
@@ -5313,7 +5371,7 @@ var (
 			},
 		},
 		0x01bf: {
-			Type: OpSET,
+			Type: OpRES,
 			Code: 0x01bf,
 			Operands: []Operand{
 				{
@@ -5322,12 +5380,12 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
 		0x01c0: {
-			Type: OpSET,
+			Type: OpRES,
 			Code: 0x01c0,
 			Operands: []Operand{
 				{
@@ -5392,7 +5450,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -5434,7 +5492,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -5504,7 +5562,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -5546,7 +5604,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -5616,7 +5674,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -5658,7 +5716,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -5728,7 +5786,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -5770,7 +5828,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -5840,7 +5898,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -5882,7 +5940,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -5952,7 +6010,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -5994,7 +6052,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -6064,7 +6122,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -6106,7 +6164,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrieveVal,
+					Type:     RetrievePointer,
 				},
 			},
 		},
@@ -6176,7 +6234,7 @@ var (
 				},
 				{
 					Location: ValA,
-					Type:     RetrievePointer,
+					Type:     RetrieveVal,
 				},
 			},
 		},
@@ -6191,6 +6249,34 @@ var (
 				{
 					Location: ValA,
 					Type:     RetrieveVal,
+				},
+			},
+		},
+		0x01fe: {
+			Type: OpSET,
+			Code: 0x01fe,
+			Operands: []Operand{
+				{
+					Location: ValA,
+					Type:     RetrieveVal,
+				},
+				{
+					Location: ValA,
+					Type:     RetrieveVal,
+				},
+			},
+		},
+		0x01ff: {
+			Type: OpSET,
+			Code: 0x01ff,
+			Operands: []Operand{
+				{
+					Location: ValA,
+					Type:     RetrieveVal,
+				},
+				{
+					Location: ValA,
+					Type:     RetrievePointer,
 				},
 			},
 		},

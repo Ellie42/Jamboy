@@ -65,7 +65,6 @@ func main() {
 	}
 
 	for _, line := range lines {
-
 		splitOp := strings.Split(line, " ")
 
 		name := splitOp[0]
@@ -121,9 +120,8 @@ func main() {
 
 				opTemplateData.Operands = append(opTemplateData.Operands, operand)
 			}
-
-			opTemplateList.Ops = append(opTemplateList.Ops, opTemplateData)
 		}
+		opTemplateList.Ops = append(opTemplateList.Ops, opTemplateData)
 
 		codeI++
 	}
