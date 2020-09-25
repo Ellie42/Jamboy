@@ -2449,12 +2449,6 @@ var (
 		0x00cb: {
 			Type: OpPREFIX,
 			Code: 0x00cb,
-			Operands: []Operand{
-				{
-					Location: ValA,
-					Type:     RetrieveVal,
-				},
-			},
 		},
 		0x00cc: {
 			Type: OpCALL,
