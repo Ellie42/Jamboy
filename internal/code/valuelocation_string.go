@@ -14,21 +14,23 @@ func _() {
 	_ = x[ValD-3]
 	_ = x[ValE-4]
 	_ = x[ValF-5]
-	_ = x[ValAF-6]
-	_ = x[ValBC-7]
-	_ = x[ValDE-8]
-	_ = x[ValHL-9]
-	_ = x[ValSP-10]
-	_ = x[ValPC-11]
-	_ = x[Val8-12]
-	_ = x[Val16-13]
-	_ = x[ValAddress-14]
-	_ = x[ValRegister-15]
+	_ = x[ValH-6]
+	_ = x[ValL-7]
+	_ = x[ValAF-8]
+	_ = x[ValBC-9]
+	_ = x[ValDE-10]
+	_ = x[ValHL-11]
+	_ = x[ValSP-12]
+	_ = x[ValPC-13]
+	_ = x[Val8-14]
+	_ = x[Val16-15]
+	_ = x[ValAddress-16]
+	_ = x[ValRegister-17]
 }
 
-const _ValueLocation_name = "ValAValBValCValDValEValFValAFValBCValDEValHLValSPValPCVal8Val16ValAddressValRegister"
+const _ValueLocation_name = "ValAValBValCValDValEValFValHValLValAFValBCValDEValHLValSPValPCVal8Val16ValAddressValRegister"
 
-var _ValueLocation_index = [...]uint8{0, 4, 8, 12, 16, 20, 24, 29, 34, 39, 44, 49, 54, 58, 63, 73, 84}
+var _ValueLocation_index = [...]uint8{0, 4, 8, 12, 16, 20, 24, 28, 32, 37, 42, 47, 52, 57, 62, 66, 71, 81, 92}
 
 func (i ValueLocation) String() string {
 	if i < 0 || i >= ValueLocation(len(_ValueLocation_index)-1) {
