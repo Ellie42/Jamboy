@@ -25,7 +25,7 @@ func NewCodeListContentWidget(wli *widget.WidgetListItem) *CodeListContentWidget
 
 	leftPanelStyle := settings.WidgetPreferences{
 		Padding: &dimension.DirectionalRectSized{
-			Left: dimension.Size{0.1, dimension.SizeUnitPixels},
+			Left: dimension.Size{4, dimension.SizeUnitPixels},
 		},
 		DimensionBounds: &dimension.Dimensions{
 			Width: &dimension.Size{
@@ -40,11 +40,8 @@ func NewCodeListContentWidget(wli *widget.WidgetListItem) *CodeListContentWidget
 	rightPanelStyle := settings.WidgetPreferences{
 		AlignmentHorizontal: settings.HorizontalLeft,
 		Padding: &dimension.DirectionalRectSized{
-			Left: dimension.Size{32, dimension.SizeUnitPixels},
+			Left: dimension.Size{4, dimension.SizeUnitPixels},
 		},
-		//StyleSettings: &styles.StyleSettings{
-		//	BackgroundColour: &ColourBGPink,
-		//},
 	}
 
 	cl.ByteNumberTextWidget = widget.NewTextWidget(nil)

@@ -28,7 +28,8 @@ var (
 					ValueStatic: {{ $operand.ValueString }},
 					RetrieveType: {{ $operand.RetrieveType.String }},
 					ValueType: {{ $operand.ValueType.String }},
-					IncDecModifier: {{ $operand.IncDecModifier }},	
+					IncDecModifier: {{ $operand.IncDecModifier }},
+					ValueSize: {{ $operand.ValueSize }},
 				},
 			{{- end }}
 			},
@@ -207,7 +208,7 @@ func main() {
 					panic(fmt.Sprintf("unknown %s", valString))
 				}
 
-				operand.ValueString = GetValueTypeString(operand.ValueStatic, operand.ValueType)
+				operand.ValueString = code.GetValueTypeString(operand.ValueStatic, operand.ValueType)
 
 				if operand.ValueType != code.ValTypeConst {
 					operand.ValueString = fmt.Sprintf("int(%s)", operand.ValueString)
@@ -239,20 +240,5 @@ func main() {
 
 	if err != nil {
 		panic(err)
-	}
-}
-
-func GetValueTypeString(value int, valueType code.ValueType) string {
-	switch valueType {
-	case code.ValTypeRead:
-		fallthrough
-	case code.ValTypeRegister:
-		return code.ValueLocation(value).String()
-	case code.ValTypeConst:
-		return fmt.Sprintf("%d", value)
-	case code.ValTypeKeyword:
-		return code.ValueKeyword(value).String()
-	default:
-		return "UNKNOWN"
 	}
 }

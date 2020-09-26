@@ -20,7 +20,7 @@ type CPU struct {
 	BootROM          []byte
 }
 
-//go:generate stringer -type=Register -linecomment
+//go:generate stringer -type=RegisterID -linecomment
 type RegisterID int
 
 const (

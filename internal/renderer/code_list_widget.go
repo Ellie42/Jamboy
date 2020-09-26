@@ -1,10 +1,13 @@
 package renderer
 
 import (
+	"encoding/binary"
+	"encoding/hex"
 	"fmt"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget"
+	"git.agehadev.com/elliebelly/jamboy/internal/code"
 	"git.agehadev.com/elliebelly/jamboy/internal/engine"
-	"math/rand"
+	"strings"
 )
 
 type CodeListDataProvider struct {
@@ -16,12 +19,46 @@ type CodeListData struct {
 	commandText string
 }
 
+var byteBuffer = make([]byte, 2)
+
 func (c CodeListDataProvider) Provide(index int) CodeListData {
-	c.jamboy.Code.GetOpAtLine(index)
+	op := c.jamboy.Code.GetOpAtLine(index)
+
+	commandString := op.Type.String()
+	operandStrings := make([]string, 0)
+
+	if op.Operands != nil {
+		for _, operand := range op.Operands {
+			operandString := code.GetValueTypeString(operand.ValueStatic, operand.ValueType)
+
+			if operand.ValueType == code.ValTypeRead {
+				binary.BigEndian.PutUint16(byteBuffer, uint16(operand.ValueEvaluated))
+				operandString = fmt.Sprintf("$%s", hex.EncodeToString(byteBuffer))
+			} else if operand.ValueType == code.ValTypeRegister {
+				operandString = engine.RegisterID((operand.ValueStatic)).String()
+			} else if operand.ValueType == code.ValTypeKeyword {
+				operandString = engine.Keyword((operand.ValueStatic)).String()
+			}
+
+			if operand.RetrieveType == code.RetrievePointer {
+				operandString = fmt.Sprintf("(%s)", operandString)
+			}
+
+			if operand.IncDecModifier > 0 {
+				operandString += "+"
+			} else if operand.IncDecModifier < 0 {
+				operandString += "-"
+			}
+
+			operandStrings = append(operandStrings, operandString)
+		}
+
+		commandString += fmt.Sprintf(" %s", strings.Join(operandStrings, ", "))
+	}
 
 	return CodeListData{
-		index * 2,
-		"LD A, B",
+		op.ByteOffset,
+		commandString,
 	}
 }
 
@@ -45,7 +82,7 @@ func NewCodeListWidget(jamboy *engine.Jamboy) *widget.List {
 		t.ByteNumberTextWidget.Text = fmt.Sprintf("%04x", data.byteNumber)
 
 		if t.CommandStringTextWidget.Text == "" {
-			t.CommandStringTextWidget.Text = fmt.Sprintf("LD AF, %04x", rand.Intn(0xFFFF))
+			t.CommandStringTextWidget.Text = data.commandText
 		}
 	}, nil)
 

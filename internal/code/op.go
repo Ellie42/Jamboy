@@ -1,9 +1,12 @@
 package code
 
+import "fmt"
+
 type Op struct {
-	Type     OpType
-	Code     int
-	Operands []Operand
+	Type       OpType
+	Code       int
+	Operands   []Operand
+	ByteOffset int
 }
 
 type Operand struct {
@@ -68,3 +71,18 @@ const (
 	RetrieveVal RetrieveType = iota
 	RetrievePointer
 )
+
+func GetValueTypeString(value int, valueType ValueType) string {
+	switch valueType {
+	case ValTypeRead:
+		fallthrough
+	case ValTypeRegister:
+		return ValueLocation(value).String()
+	case ValTypeConst:
+		return fmt.Sprintf("%d", value)
+	case ValTypeKeyword:
+		return ValueKeyword(value).String()
+	default:
+		return "UNKNOWN"
+	}
+}

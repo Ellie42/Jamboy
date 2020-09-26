@@ -24,13 +24,13 @@ func _() {
 	_ = x[PC-13]
 }
 
-const _Register_name = "ABCDEFHLAFBCDEHLSPPC"
+const _RegisterID_name = "ABCDEFHLAFBCDEHLSPPC"
 
-var _Register_index = [...]uint8{0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 18, 20}
+var _RegisterID_index = [...]uint8{0, 1, 2, 3, 4, 5, 6, 7, 8, 10, 12, 14, 16, 18, 20}
 
 func (i RegisterID) String() string {
-	if i < 0 || i >= RegisterID(len(_Register_index)-1) {
+	if i < 0 || i >= RegisterID(len(_RegisterID_index)-1) {
 		return "RegisterID(" + strconv.FormatInt(int64(i), 10) + ")"
 	}
-	return _Register_name[_Register_index[i]:_Register_index[i+1]]
+	return _RegisterID_name[_RegisterID_index[i]:_RegisterID_index[i+1]]
 }
