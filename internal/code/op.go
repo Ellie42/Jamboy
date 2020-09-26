@@ -7,10 +7,14 @@ type Op struct {
 }
 
 type Operand struct {
-	Value        int
-	RetrieveType RetrieveType
-	ValueType    ValueType
-	ValueString  string
+	ValueEvaluated int
+
+	ValueStatic    int
+	RetrieveType   RetrieveType
+	ValueType      ValueType
+	ValueString    string
+	ValueSize      int
+	IncDecModifier int
 }
 
 //go:generate stringer -type ValueLocation
@@ -31,10 +35,9 @@ const (
 	ValHL
 	ValSP
 	ValPC
-	Val8
-	Val16
-	ValAddress
-	ValRegister
+	ValNumber
+	ValAbsolute
+	ValSigned
 )
 
 //go:generate stringer -type ValueKeyword
@@ -44,6 +47,8 @@ const (
 	ValKeywordZ ValueKeyword = iota
 	ValKeywordNZ
 	ValKeywordCB
+	ValKeywordC
+	ValKeywordNC
 )
 
 //go:generate stringer -type ValueType

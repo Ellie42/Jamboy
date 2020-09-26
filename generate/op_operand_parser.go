@@ -25,9 +25,10 @@ var (
 			Operands: []Operand{
 			{{- range $operand := $op.Operands }}
 				{
-					Value: {{ $operand.ValueString }},
+					ValueStatic: {{ $operand.ValueString }},
 					RetrieveType: {{ $operand.RetrieveType.String }},
 					ValueType: {{ $operand.ValueType.String }},
+					IncDecModifier: {{ $operand.IncDecModifier }},	
 				},
 			{{- end }}
 			},
@@ -69,6 +70,8 @@ var keywordValMap = map[string]code.ValueKeyword{
 	"Z":  code.ValKeywordZ,
 	"NZ": code.ValKeywordNZ,
 	"CB": code.ValKeywordCB,
+	"NC": code.ValKeywordNC,
+	"C":  code.ValKeywordC,
 }
 
 func main() {
@@ -78,7 +81,7 @@ func main() {
 		panic(err)
 	}
 
-	extractValLocationRegexp := regexp.MustCompile("\\(?(.*?)\\)?$")
+	extractValLocationRegexp := regexp.MustCompile("\\(?(.*?)(-?|\\+?)\\)?$")
 	getValSizeRegexp := regexp.MustCompile("([a-z])([0-9]+)")
 	getHexValStringRegexp := regexp.MustCompile("([0-9]+)H")
 
@@ -104,12 +107,21 @@ func main() {
 			CodeHex: hex.EncodeToString(codeByteBuffer),
 		}
 
+		isConditional := false
+
+		for _, s := range []string{"JP", "JR", "CALL", "RET"} {
+			if name == s {
+				isConditional = true
+				break
+			}
+		}
+
 		if len(splitOp) > 1 {
 			splitOperands := strings.Split(splitOp[1], ",")
 
 			opTemplateData.Operands = make([]code.Operand, 0)
 
-			for _, operandString := range splitOperands {
+			for operandIndex, operandString := range splitOperands {
 				operand := code.Operand{}
 
 				if string(([]rune(operandString))[0]) == "(" {
@@ -118,10 +130,11 @@ func main() {
 					operand.RetrieveType = code.RetrieveVal
 				}
 
-				valString := extractValLocationRegexp.FindStringSubmatch(operandString)[1]
+				extractedOperandVal := extractValLocationRegexp.FindStringSubmatch(operandString)
+				incDecModifier := extractedOperandVal[2]
+				valString := extractedOperandVal[1]
 
 				if match, _ := regexp.MatchString("[a-z][0-9]+", valString); match {
-
 					// We are expecting to read this value from the next byte(s)
 					operand.ValueType = code.ValTypeRead
 
@@ -136,19 +149,27 @@ func main() {
 
 					switch valType {
 					case "a":
-						operand.Value = int(code.ValAddress)
+						operand.ValueStatic = int(code.ValAbsolute)
 					case "r":
-						operand.Value = int(code.ValRegister)
+						operand.ValueStatic = int(code.ValSigned)
 					default:
-						if size == 8 {
-							operand.Value = int(code.Val8)
-						} else {
-							operand.Value = int(code.Val16)
+						operand.ValueStatic = int(code.ValNumber)
+					}
+
+					operand.ValueSize = size / 8
+				} else if register, ok := registerValMap[valString]; (!isConditional || len(splitOperands) == 1 || operandIndex > 0) && ok {
+					operand.ValueStatic = int(register)
+					operand.ValueType = code.ValTypeRegister
+					operand.ValueSize = len(valString)
+
+					if len(incDecModifier) > 0 {
+						switch incDecModifier {
+						case "+":
+							operand.IncDecModifier = 1
+						case "-":
+							operand.IncDecModifier = -1
 						}
 					}
-				} else if register, ok := registerValMap[valString]; ok {
-					operand.Value = int(register)
-					operand.ValueType = code.ValTypeRegister
 				} else if match, _ := regexp.MatchString("[0-9]+", valString); match {
 					var constVal int
 					var err error
@@ -162,10 +183,13 @@ func main() {
 
 						if len(hexBytes) == 1 {
 							constVal = int(hexBytes[0])
+							operand.ValueSize = 1
 						} else {
 							constVal = int(binary.LittleEndian.Uint16(hexBytes))
+							operand.ValueSize = len(hexBytes)
 						}
 					} else {
+						operand.ValueSize = 1
 						constVal, err = strconv.Atoi(valString)
 
 						if err != nil {
@@ -173,14 +197,17 @@ func main() {
 						}
 					}
 
-					operand.Value = constVal
+					operand.ValueStatic = constVal
 					operand.ValueType = code.ValTypeConst
 				} else if keyword, ok := keywordValMap[valString]; ok {
-					operand.Value = int(keyword)
+					operand.ValueStatic = int(keyword)
 					operand.ValueType = code.ValTypeKeyword
+					operand.ValueSize = 0
+				} else {
+					panic(fmt.Sprintf("unknown %s", valString))
 				}
 
-				operand.ValueString = GetValueTypeString(operand.Value, operand.ValueType)
+				operand.ValueString = GetValueTypeString(operand.ValueStatic, operand.ValueType)
 
 				if operand.ValueType != code.ValTypeConst {
 					operand.ValueString = fmt.Sprintf("int(%s)", operand.ValueString)

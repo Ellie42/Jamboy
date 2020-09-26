@@ -22,15 +22,14 @@ func _() {
 	_ = x[ValHL-11]
 	_ = x[ValSP-12]
 	_ = x[ValPC-13]
-	_ = x[Val8-14]
-	_ = x[Val16-15]
-	_ = x[ValAddress-16]
-	_ = x[ValRegister-17]
+	_ = x[ValNumber-14]
+	_ = x[ValAbsolute-15]
+	_ = x[ValSigned-16]
 }
 
-const _ValueLocation_name = "ValAValBValCValDValEValFValHValLValAFValBCValDEValHLValSPValPCVal8Val16ValAddressValRegister"
+const _ValueLocation_name = "ValAValBValCValDValEValFValHValLValAFValBCValDEValHLValSPValPCValNumberValAbsoluteValSigned"
 
-var _ValueLocation_index = [...]uint8{0, 4, 8, 12, 16, 20, 24, 28, 32, 37, 42, 47, 52, 57, 62, 66, 71, 81, 92}
+var _ValueLocation_index = [...]uint8{0, 4, 8, 12, 16, 20, 24, 28, 32, 37, 42, 47, 52, 57, 62, 71, 82, 91}
 
 func (i ValueLocation) String() string {
 	if i < 0 || i >= ValueLocation(len(_ValueLocation_index)-1) {

@@ -11,11 +11,13 @@ func _() {
 	_ = x[ValKeywordZ-0]
 	_ = x[ValKeywordNZ-1]
 	_ = x[ValKeywordCB-2]
+	_ = x[ValKeywordC-3]
+	_ = x[ValKeywordNC-4]
 }
 
-const _ValueKeyword_name = "ValKeywordZValKeywordNZValKeywordCB"
+const _ValueKeyword_name = "ValKeywordZValKeywordNZValKeywordCBValKeywordCValKeywordNC"
 
-var _ValueKeyword_index = [...]uint8{0, 11, 23, 35}
+var _ValueKeyword_index = [...]uint8{0, 11, 23, 35, 46, 58}
 
 func (i ValueKeyword) String() string {
 	if i < 0 || i >= ValueKeyword(len(_ValueKeyword_index)-1) {

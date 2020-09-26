@@ -217,6 +217,7 @@ func PUSH(jb *Jamboy, opcode OpCode) (err error) {
 }
 
 func RET(jb *Jamboy, opcode OpCode) (err error) {
+	//TODO add conditions
 	jb.CPU.Return()
 
 	return nil
