@@ -1,4 +1,4 @@
-package renderer
+package gui
 
 import (
 	"encoding/binary"
@@ -40,14 +40,14 @@ func (c CodeListDataProvider) Provide(index int) CodeListData {
 				operandString = engine.Keyword((operand.ValueStatic)).String()
 			}
 
-			if operand.RetrieveType == code.RetrievePointer {
-				operandString = fmt.Sprintf("(%s)", operandString)
-			}
-
 			if operand.IncDecModifier > 0 {
 				operandString += "+"
 			} else if operand.IncDecModifier < 0 {
 				operandString += "-"
+			}
+
+			if operand.RetrieveType == code.RetrievePointer {
+				operandString = fmt.Sprintf("(%s)", operandString)
 			}
 
 			operandStrings = append(operandStrings, operandString)
@@ -70,20 +70,18 @@ func getCodeListContentWidget(wli *widget.WidgetListItem) widget.Widget {
 	return NewCodeListContentWidget(wli)
 }
 
-func NewCodeListWidget(jamboy *engine.Jamboy) *widget.List {
+func NewCodeListWidget(jamboy *engine.Jamboy, debugger *DebuggerControl) *widget.List {
 	dataProvider := &CodeListDataProvider{}
 
 	dataProvider.Init(jamboy)
 
 	list := widget.NewList(getCodeListContentWidget, func(w widget.Widget, index int) {
 		t := w.(*CodeListContentWidget)
-		data := dataProvider.Provide(index)
+		data := dataProvider.Provide(index + jamboy.Debugger.GetCurrentLine())
 
 		t.ByteNumberTextWidget.Text = fmt.Sprintf("%04x", data.byteNumber)
 
-		if t.CommandStringTextWidget.Text == "" {
-			t.CommandStringTextWidget.Text = data.commandText
-		}
+		t.CommandStringTextWidget.Text = data.commandText
 	}, nil)
 
 	return list

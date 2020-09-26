@@ -9,11 +9,12 @@ import (
 )
 
 type Jamboy struct {
-	CPU  *CPU
-	GPU  *GPU
-	Cart *internal.Cart
-	MMU  *MMU
-	Code *Code
+	CPU      *CPU
+	GPU      *GPU
+	Cart     *internal.Cart
+	MMU      *MMU
+	Code     *Code
+	Debugger *Debugger
 
 	OutputDebug   bool
 	IsHalted      bool
@@ -35,6 +36,7 @@ func (j *Jamboy) PowerOn(bootROMdata []byte) {
 	j.MMU.Reset()
 	j.GPU.Reset()
 	j.Code.Reset()
+	j.Debugger.Reset()
 
 	if bootROMdata != nil {
 		j.CPU.LoadBootRom(bootROMdata)
@@ -44,6 +46,8 @@ func (j *Jamboy) PowerOn(bootROMdata []byte) {
 }
 
 func (j *Jamboy) Tick() error {
+	j.Debugger.PreTick()
+
 	if j.IsHalted {
 		return nil
 	}
@@ -88,6 +92,8 @@ SP %04x PC %04x
 	if j.CPU.IsBooting && j.MMU.Read(AddrBootROMDisable) > 0 {
 		j.CPU.UnloadBootROM()
 	}
+
+	j.Debugger.PostTick()
 
 	j.CPU.CurrentOP = j.NextOpInstant()
 
@@ -156,6 +162,7 @@ func NewJamboy() *Jamboy {
 	jb.CPU = NewCPU(jb)
 	jb.GPU = NewGPU(jb)
 	jb.Code = NewCode(jb)
+	jb.Debugger = NewDebugger(jb)
 
 	return jb
 }

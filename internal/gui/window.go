@@ -1,4 +1,4 @@
-package renderer
+package gui
 
 import (
 	"git.agehadev.com/elliebelly/gooey/lib/dimension"
@@ -25,16 +25,19 @@ type Window struct {
 }
 
 var (
-	ColourBGGrey      = draw.NewRGBAFromHex("37505C")
-	ColourBGGreyLight = draw.NewRGBAFromHex("49626E")
-	ColourBGGreyDark  = draw.NewRGBAFromHex("1E3440")
-	ColourBGPink      = draw.RGBA{0.741, 0.647, 0.608, 1}
-	ColourBGPinkDark  = draw.RGBA{0.741, 0.576, 0.51, 1}
-	ColourPaleRed     = draw.NewRGBAFromHex("A14643")
-	ColourPalerRed    = draw.NewRGBAFromHex("B25D5A")
-	ColourBrightRed   = draw.RGBA{0.592, 0.133, 0.129, 1}
-	ColourDarkRed     = draw.RGBA{0.224, 0.125, 0.125, 1}
-	ColourHighlight   = draw.RGBA{0.655, 0.322, 0.012, 1}
+	ColourBGGrey          = draw.NewRGBAFromHex("37505C")
+	ColourBGGreyLight     = draw.NewRGBAFromHex("49626E")
+	ColourBGGreyDark      = draw.NewRGBAFromHex("1E3440")
+	ColourBGBlueDark      = draw.NewRGBAFromHex("16161a")
+	ColourBGBlueVeryDark  = draw.NewRGBAFromHex("0e0e10")
+	ColourBGBlueVeryDark2 = draw.NewRGBAFromHex("09090a")
+	ColourBGPink          = draw.RGBA{0.741, 0.647, 0.608, 1}
+	ColourBGPinkDark      = draw.RGBA{0.741, 0.576, 0.51, 1}
+	ColourPaleRed         = draw.NewRGBAFromHex("A14643")
+	ColourPalerRed        = draw.NewRGBAFromHex("B25D5A")
+	ColourBrightRed       = draw.NewRGBAFromHex("962120")
+	ColourDarkRed         = draw.NewRGBAFromHex("6e1817")
+	ColourHighlight       = draw.RGBA{0.655, 0.322, 0.012, 1}
 )
 
 func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint8, jamboy *engine.Jamboy) {
@@ -72,15 +75,15 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 		panic(err)
 	}
 
-	gooeyWindow.Context.ShowDebug = true
+	//gooeyWindow.Context.ShowDebug = true
 
 	gooeyWindow.Layout = widget.NewFreeLayout(
 		&settings.WidgetPreferences{
-			StyleSettings: &styles.StyleSettings{BackgroundColour: &ColourBrightRed},
+			StyleSettings: &styles.StyleSettings{BackgroundColour: &ColourBGBlueVeryDark},
 		},
 	)
 
-	panel := widget.NewPanel(&settings.WidgetPreferences{
+	gamePanel := widget.NewPanel(&settings.WidgetPreferences{
 		FixedRatioAxis:      settings.FixedY,
 		FixedRatio:          0.9,
 		AlignmentHorizontal: settings.HorizontalLeft,
@@ -104,18 +107,22 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 		NewGameWidget(&w.Game),
 	)
 
+	debugger := NewDebuggerControl(jamboy, &gooeyWindow.Context.EventManager)
+
+	codeListWidget := NewCodeListWidget(jamboy, debugger)
+
 	gooeyWindow.Layout.AddChild(
 		widget.NewLinearLayout(&settings.WidgetPreferences{
 			Padding: &dimension.DirectionalRectSized{
-				dimension.Size{0.01, dimension.SizeUnitRatio},
-				dimension.Size{0.01, dimension.SizeUnitRatio},
-				dimension.Size{0.01, dimension.SizeUnitRatio},
-				dimension.Size{0.01, dimension.SizeUnitRatio},
+				dimension.Size{Amount: 8},
+				dimension.Size{Amount: 8},
+				dimension.Size{Amount: 8},
+				dimension.Size{Amount: 8},
 			},
 		},
-			panel,
+			gamePanel,
 			widget.NewPanel(nil,
-				NewCodeListWidget(jamboy),
+				codeListWidget,
 			),
 		),
 	)

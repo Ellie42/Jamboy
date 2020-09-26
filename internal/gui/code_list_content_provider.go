@@ -1,8 +1,9 @@
-package renderer
+package gui
 
 import (
 	"git.agehadev.com/elliebelly/gooey/lib/dimension"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget"
+	"git.agehadev.com/elliebelly/gooey/pkg/widget/behaviour"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget/settings"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget/styles"
 )
@@ -33,7 +34,10 @@ func NewCodeListContentWidget(wli *widget.WidgetListItem) *CodeListContentWidget
 			},
 		},
 		StyleSettings: &styles.StyleSettings{
-			BackgroundColour: &ColourBGGreyLight,
+			BackgroundColour: &ColourDarkRed,
+		},
+		Behaviours: &behaviour.BehaviourSet{
+			Clickable: &behaviour.Clickable{},
 		},
 	}
 

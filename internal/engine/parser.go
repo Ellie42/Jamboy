@@ -1,8 +1,10 @@
 package engine
 
 import (
+	"fmt"
 	"git.agehadev.com/elliebelly/gooey/lib/binary"
 	"git.agehadev.com/elliebelly/jamboy/internal/code"
+	"sync"
 )
 
 //go:generate stringer -type Keyword -linecomment
@@ -23,6 +25,7 @@ type Code struct {
 	pc       int
 	lc       int
 	opMod    int
+	sync.Mutex
 }
 
 func (c *Code) NextOp() {
@@ -37,14 +40,17 @@ func (c *Code) GetOpAtLine(index int) *code.Op {
 		return c.opBuffer[index]
 	}
 
+	c.Lock()
+	defer c.Unlock()
+
 	for i := c.lc; i <= index; i++ {
-		c.parseNextLine(i)
+		c.parseNextLine()
 	}
 
 	return c.opBuffer[index]
 }
 
-func (c *Code) parseNextLine(index int) *code.Op {
+func (c *Code) parseNextLine() *code.Op {
 	currentPC := c.pc
 
 	next := c.nextByte()
@@ -55,7 +61,7 @@ func (c *Code) parseNextLine(index int) *code.Op {
 
 	if op.Type == code.OpPREFIX {
 		c.opMod = 0x0100
-		return c.parseNextLine(index)
+		return c.parseNextLine()
 	}
 
 	if op.Operands != nil {
@@ -94,7 +100,7 @@ func (c *Code) parseNextLine(index int) *code.Op {
 
 	c.opMod = 0
 
-	c.opBuffer[index] = &op
+	c.opBuffer[c.lc] = &op
 
 	c.lc++
 
@@ -107,9 +113,32 @@ func (c *Code) nextByte() byte {
 	return next
 }
 
+func (c *Code) GetLineForAddress(address int) int {
+	c.Lock()
+	defer c.Unlock()
+
+	for c.pc <= address {
+		c.parseNextLine()
+	}
+
+	for i := 0; i < c.lc; i++ {
+		op := c.opBuffer[i]
+
+		if op.ByteOffset > address {
+			return i - 1
+		}
+
+		if op.ByteOffset == address {
+			return i
+		}
+	}
+
+	panic(fmt.Sprintf("Could not find line in buffer for address '%x'", address))
+}
+
 func NewCode(jamboy *Jamboy) *Code {
 	return &Code{
-		opBuffer: make([]*code.Op, 65535),
+		opBuffer: make([]*code.Op, 1024*1024),
 		jamboy:   jamboy,
 	}
 }

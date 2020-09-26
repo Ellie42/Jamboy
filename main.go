@@ -7,7 +7,7 @@ import (
 	"fmt"
 	"git.agehadev.com/elliebelly/jamboy/internal"
 	"git.agehadev.com/elliebelly/jamboy/internal/engine"
-	"git.agehadev.com/elliebelly/jamboy/internal/renderer"
+	"git.agehadev.com/elliebelly/jamboy/internal/gui"
 	"go.uber.org/zap"
 	"io/ioutil"
 	"log"
@@ -82,10 +82,12 @@ func main() {
 
 	pixels := make([]uint8, engine.ResolutionX*engine.ResolutionY*4)
 
-	window := renderer.NewWindow()
+	window := gui.NewWindow()
 	jamboy := engine.NewJamboy()
 
 	jamboy.GPU.PixelBuffer = pixels
+
+	jamboy.Debugger.AddBreakpoint(0x00)
 
 	var done chan bool
 

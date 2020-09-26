@@ -1,4 +1,4 @@
-package renderer
+package gui
 
 import (
 	"git.agehadev.com/elliebelly/gooey/lib/shader"
