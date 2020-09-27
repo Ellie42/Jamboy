@@ -32,7 +32,7 @@ func NewCodeListContentWidget(wli *widget.WidgetListItem) *CodeListContentWidget
 		},
 		DimensionBounds: &dimension.Dimensions{
 			Width: &dimension.Size{
-				Amount: 65,
+				Amount: 70,
 			},
 		},
 		StyleSettings: &styles.StyleSettings{
