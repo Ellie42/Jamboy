@@ -401,6 +401,7 @@ func (c *CPU) Xor(value uint8) {
 		c.AddFlags(ZeroFlag)
 	}
 
+	//TODO use writeRegisterInstant for all register sets
 	c.Registers[A] = finalValue
 }
 

@@ -38,7 +38,7 @@ func NewCodeListContentWidget(wli *widget.WidgetListItem) *CodeListContentWidget
 		StyleSettings: &styles.StyleSettings{
 			BackgroundColour: &ColourDarkRed,
 		},
-		Behaviours: &behaviour.BehaviourSet{
+		Behaviours: behaviour.BehaviourSet{
 			Clickable: &behaviour.Clickable{},
 		},
 	}

@@ -117,6 +117,12 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 	codeListWidget := NewCodeListWidget(jamboy, debugger)
 
 	registerRowPrefs := &settings.WidgetPreferences{
+		Padding: &dimension.DirectionalRectSized{
+			Top:    dimension.Size{},
+			Right:  dimension.Size{},
+			Bottom: dimension.Size{},
+			Left:   dimension.Size{8, dimension.SizeUnitPixels},
+		},
 		DimensionBounds: &dimension.Dimensions{
 			Height: &dimension.Size{
 				Amount: 32,
