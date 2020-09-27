@@ -4,7 +4,7 @@ import (
 	"git.agehadev.com/elliebelly/gooey/lib/shader"
 	"git.agehadev.com/elliebelly/gooey/pkg/draw"
 	"github.com/AllenDang/giu"
-	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/go-gl/gl/v4.6-compatibility/gl"
 	"image"
 	"unsafe"
 )

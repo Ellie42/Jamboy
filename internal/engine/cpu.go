@@ -2,6 +2,7 @@ package engine
 
 import (
 	"fmt"
+	"sync"
 )
 
 // REMEMBER LITTLE ENDIAN
@@ -18,6 +19,8 @@ type CPU struct {
 	IsBooting        bool
 	HasBootROM       bool
 	BootROM          []byte
+
+	sync.RWMutex
 }
 
 //go:generate stringer -type=RegisterID -linecomment
@@ -75,6 +78,9 @@ func (c *CPU) WriteRegister(register RegisterID, value uint) {
 }
 
 func (c *CPU) WriteRegisterInstant(register RegisterID, value uint) {
+	c.Lock()
+	defer c.Unlock()
+
 	switch register {
 	case AF:
 		c.Registers[F] = byte(value & 0x00F0)
@@ -118,6 +124,9 @@ func (c *CPU) ReadRegister(register RegisterID) uint {
 }
 
 func (c *CPU) ReadRegisterInstant(register RegisterID) (value uint) {
+	c.RLock()
+	defer c.RUnlock()
+
 	switch register {
 	case AF:
 		value = uint(c.Registers[F])
@@ -169,6 +178,10 @@ func (c *CPU) Reset() {
 	c.WriteRegister(BC, 0x0013)
 	c.WriteRegister(DE, 0x00D8)
 	c.WriteRegister(HL, 0x014D)
+
+	c.Lock()
+	defer c.Unlock()
+
 	c.SP = 0xFFFE
 
 	if c.HasBootROM {

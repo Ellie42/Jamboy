@@ -87,7 +87,10 @@ func main() {
 
 	jamboy.GPU.PixelBuffer = pixels
 
-	jamboy.Debugger.AddBreakpoint(0x00)
+	jamboy.Debugger.AddBreakpoint(0x00fe)
+	jamboy.Debugger.AddBreakpoint(0x00fd)
+	jamboy.Debugger.AddBreakpoint(0x00fc)
+	jamboy.Debugger.AddBreakpoint(0x00fb)
 
 	var done chan bool
 

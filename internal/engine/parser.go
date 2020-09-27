@@ -117,7 +117,7 @@ func (c *Code) GetLineForAddress(address int) int {
 	c.Lock()
 	defer c.Unlock()
 
-	for c.pc <= address {
+	for c.pc <= address+1 {
 		c.parseNextLine()
 	}
 

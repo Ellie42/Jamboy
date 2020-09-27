@@ -1,6 +1,7 @@
 package gui
 
 import (
+	"fmt"
 	"git.agehadev.com/elliebelly/gooey/lib/dimension"
 	gooey "git.agehadev.com/elliebelly/gooey/pkg"
 	"git.agehadev.com/elliebelly/gooey/pkg/draw"
@@ -8,7 +9,7 @@ import (
 	"git.agehadev.com/elliebelly/gooey/pkg/widget/settings"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget/styles"
 	"git.agehadev.com/elliebelly/jamboy/internal/engine"
-	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/go-gl/gl/v4.6-compatibility/gl"
 	"github.com/go-gl/glfw/v3.3/glfw"
 	_ "image/png"
 	"runtime"
@@ -25,19 +26,23 @@ type Window struct {
 }
 
 var (
-	ColourBGGrey          = draw.NewRGBAFromHex("37505C")
-	ColourBGGreyLight     = draw.NewRGBAFromHex("49626E")
-	ColourBGGreyDark      = draw.NewRGBAFromHex("1E3440")
-	ColourBGBlueDark      = draw.NewRGBAFromHex("16161a")
-	ColourBGBlueVeryDark  = draw.NewRGBAFromHex("0e0e10")
-	ColourBGBlueVeryDark2 = draw.NewRGBAFromHex("09090a")
-	ColourBGPink          = draw.RGBA{0.741, 0.647, 0.608, 1}
-	ColourBGPinkDark      = draw.RGBA{0.741, 0.576, 0.51, 1}
-	ColourPaleRed         = draw.NewRGBAFromHex("A14643")
-	ColourPalerRed        = draw.NewRGBAFromHex("B25D5A")
-	ColourBrightRed       = draw.NewRGBAFromHex("962120")
-	ColourDarkRed         = draw.NewRGBAFromHex("6e1817")
-	ColourHighlight       = draw.RGBA{0.655, 0.322, 0.012, 1}
+	ColourGrey          = draw.NewRGBAFromHex("37505C")
+	ColourGreyLight     = draw.NewRGBAFromHex("49626E")
+	ColourGreyDark      = draw.NewRGBAFromHex("252528")
+	ColourBlue          = draw.NewRGBAFromHex("314FDA")
+	ColourBlueDark      = draw.NewRGBAFromHex("16161a")
+	ColourBlueVeryDark  = draw.NewRGBAFromHex("0e0e10")
+	ColourBlueVeryDark2 = draw.NewRGBAFromHex("09090a")
+	ColourPink          = draw.RGBA{0.741, 0.647, 0.608, 1}
+	ColourGreen         = draw.NewRGBAFromHex("37E13E")
+	ColourPinkDark      = draw.RGBA{0.741, 0.576, 0.51, 1}
+	ColourPaleRed       = draw.NewRGBAFromHex("A14643")
+	ColourPalerRed      = draw.NewRGBAFromHex("B25D5A")
+	ColourBrightRed     = draw.NewRGBAFromHex("962120")
+	ColourDarkRed       = draw.NewRGBAFromHex("6e1817")
+	ColourRed           = draw.NewRGBAFromHex("CD2524")
+	ColourPurple        = draw.NewRGBAFromHex("6A2AD8")
+	ColourHighlight     = draw.RGBA{0.655, 0.322, 0.012, 1}
 )
 
 func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint8, jamboy *engine.Jamboy) {
@@ -79,7 +84,7 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 
 	gooeyWindow.Layout = widget.NewFreeLayout(
 		&settings.WidgetPreferences{
-			StyleSettings: &styles.StyleSettings{BackgroundColour: &ColourBGBlueVeryDark},
+			StyleSettings: &styles.StyleSettings{BackgroundColour: &ColourBlueVeryDark},
 		},
 	)
 
@@ -99,7 +104,7 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 		},
 		DimensionBounds: &dimension.Dimensions{
 			Width: &dimension.Size{
-				400,
+				float32(w.Game.ResX) * 2,
 				dimension.SizeUnitPixels,
 			},
 		},
@@ -110,6 +115,62 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 	debugger := NewDebuggerControl(jamboy, &gooeyWindow.Context.EventManager)
 
 	codeListWidget := NewCodeListWidget(jamboy, debugger)
+
+	registerRowPrefs := &settings.WidgetPreferences{
+		DimensionBounds: &dimension.Dimensions{
+			Height: &dimension.Size{
+				Amount: 32,
+			},
+		},
+	}
+
+	registerLayout := widget.NewLinearLayout(
+		&settings.WidgetPreferences{
+			Name:          "Registers",
+			StyleSettings: &styles.StyleSettings{BackgroundColour: &ColourGreyDark},
+			DimensionBounds: &dimension.Dimensions{
+				Height: &dimension.Size{
+					Amount: 224,
+				},
+			},
+		},
+	)
+
+	for i := 0; i < 14; i += 2 {
+		var reg, reg2 = engine.RegisterID(i), engine.RegisterID(i + 1)
+
+		registerLayout.AddChild(
+			widget.NewLinearLayout(registerRowPrefs,
+				widget.NewTextWidget(nil, engine.RegisterID(i).String()),
+				widget.NewDynamicTextWidget(nil, func() string {
+					return fmt.Sprintf("$%04x", jamboy.CPU.ReadRegisterInstant(reg))
+				}),
+				widget.NewTextWidget(nil, engine.RegisterID(i+1).String()),
+				widget.NewDynamicTextWidget(nil, func() string {
+					return fmt.Sprintf("$%04x", jamboy.CPU.ReadRegisterInstant(reg2))
+				}),
+			),
+		)
+	}
+
+	registerLayout.Alignment = widget.LLAlignmentVertical
+
+	rightSidePanel := widget.NewLinearLayout(
+		&settings.WidgetPreferences{
+			DimensionBounds: &dimension.Dimensions{
+				Width: &dimension.Size{
+					Amount: 300,
+				},
+			},
+		},
+		widget.NewPanel(nil),
+		registerLayout,
+	)
+	rightSidePanel.Alignment = widget.LLAlignmentVertical
+
+	//gooeyWindow.Layout.AddChild(getTestWindow())
+	//w.GUI.Loop()
+	//return
 
 	gooeyWindow.Layout.AddChild(
 		widget.NewLinearLayout(&settings.WidgetPreferences{
@@ -124,6 +185,7 @@ func (w *Window) Open(resX, resY int, pixelPointer unsafe.Pointer, pixels []uint
 			widget.NewPanel(nil,
 				codeListWidget,
 			),
+			rightSidePanel,
 		),
 	)
 
@@ -159,4 +221,49 @@ func NewWindow() *Window {
 	}
 
 	return w
+}
+
+func getTestWindow() widget.Widget {
+	//ll := widget.NewLinearLayout(nil,
+	//	widget.NewPanel(&settings.WidgetPreferences{
+	//		Name:          "PanelRed",
+	//		StyleSettings: &styles.StyleSettings{BackgroundColour: &ColourRed},
+	//		DimensionBounds: &dimension.Dimensions{
+	//			Width: &dimension.Size{
+	//				Amount: 100,
+	//			},
+	//			Height: nil,
+	//		},
+	//	}),
+	//	widget.NewPanel(&settings.WidgetPreferences{
+	//		Name:          "PanelGreen",
+	//		StyleSettings: &styles.StyleSettings{BackgroundColour: &ColourGreen},
+	//	}),
+	//	widget.NewPanel(&settings.WidgetPreferences{
+	//		Name:          "PanelBlue",
+	//		StyleSettings: &styles.StyleSettings{BackgroundColour: &ColourBlue},
+	//		DimensionBounds: &dimension.Dimensions{
+	//			Width: &dimension.Size{
+	//				Amount: 100,
+	//			},
+	//			Height: nil,
+	//		},
+	//	}),
+	//	widget.NewPanel(&settings.WidgetPreferences{
+	//		Name:          "PanelPurple",
+	//		StyleSettings: &styles.StyleSettings{BackgroundColour: &ColourPurple},
+	//	}),
+	//)
+
+	list := widget.NewList(
+		widget.NewListStringContentWidget,
+		func(w widget.Widget, index int) {
+			t := w.(*widget.Text)
+
+			t.Text = fmt.Sprintf("Line %d is here", index)
+		},
+		nil,
+	)
+
+	return list
 }

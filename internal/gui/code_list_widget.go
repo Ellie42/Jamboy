@@ -25,6 +25,9 @@ func (c CodeListDataProvider) Provide(index int) CodeListData {
 	op := c.jamboy.Code.GetOpAtLine(index)
 
 	commandString := op.Type.String()
+
+	commandString += strings.Repeat(" ", 4-len(commandString))
+
 	operandStrings := make([]string, 0)
 
 	if op.Operands != nil {
@@ -53,7 +56,10 @@ func (c CodeListDataProvider) Provide(index int) CodeListData {
 			operandStrings = append(operandStrings, operandString)
 		}
 
-		commandString += fmt.Sprintf(" %s", strings.Join(operandStrings, ", "))
+		// For some reason I dont feel like looking into right now the previous characters are not being cleared
+		// properly, so I'm just wiping them clean with a bunch of spaces
+		// TODO like fix it
+		commandString += fmt.Sprintf(" %s                        ", strings.Join(operandStrings, ", "))
 	}
 
 	return CodeListData{

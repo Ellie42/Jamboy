@@ -3,7 +3,7 @@ package gui
 import (
 	"git.agehadev.com/elliebelly/gooey/lib/dimension"
 	"git.agehadev.com/elliebelly/gooey/pkg/widget"
-	"github.com/go-gl/gl/v4.6-core/gl"
+	"github.com/go-gl/gl/v4.6-compatibility/gl"
 )
 
 type GameWidget struct {
